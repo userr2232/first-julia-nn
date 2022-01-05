@@ -1,0 +1,12 @@
+datasets:
+  dir: data
+  processed_dir: processed_${.dir}
+  selected_dir: ${.processed_dir}
+  train: ${.selected_dir}/train
+  valid: ${.selected_dir}/valid
+  test: ${.selected_dir}/test
+
+training:
+  device: "cuda"
+  epochs: 1000
+
