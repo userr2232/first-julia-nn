@@ -159,3 +159,6 @@ bin/
 
 # data
 data/
+
+# share
+share/
