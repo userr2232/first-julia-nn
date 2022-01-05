@@ -1,12 +1,17 @@
 datasets:
   dir: data
   processed_dir: processed_${.dir}
-  selected_dir: ${.processed_dir}
+  selected_dir: ${.dir}
   train: ${.selected_dir}/train
   valid: ${.selected_dir}/valid
   test: ${.selected_dir}/test
+  julia: ${.selected_dir}/Data_Julia
+  sao: ${.selected_dir}/Completed_SAO_V3.hdf5
 
 training:
-  device: "cuda"
+  device: cuda
   epochs: 1000
 
+years:
+  start: 2000
+  end: 2021

@@ -156,3 +156,6 @@ pyvenv.cfg
 lib/
 include/
 bin/
+
+# data
+data/
