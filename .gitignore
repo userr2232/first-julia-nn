@@ -159,6 +159,7 @@ bin/
 
 # data
 data/
+processed_data/
 
 # share
 share/
