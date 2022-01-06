@@ -163,3 +163,6 @@ processed_data/
 
 # share
 share/
+
+# hydra
+outputs/

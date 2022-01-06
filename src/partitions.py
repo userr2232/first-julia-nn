@@ -10,11 +10,12 @@ from omegaconf import DictConfig
 import pyarrow as pa
 import pyarrow.dataset as ds
 from pyarrow import fs
-from typing import Union, Optional
+from typing import Dict, Union, Optional
 from itertools import product
+from os import chdir
 
 
-def preprocessing(cfg: DictConfig, save: bool = False, path: Optional[Union[str, Path]] = None) -> pa.Table:
+def preprocessing(cfg: DictConfig, save: bool = False, path: Optional[Union[str, Path]] = None) -> None:
     if save:
         assert(path is not None)
         path = Path(path)
@@ -70,18 +71,7 @@ def preprocessing(cfg: DictConfig, save: bool = False, path: Optional[Union[str,
     if save:
         partitioning = ds.partitioning(pa.schema([("year", pa.int16())]), flavor="hive")
         ds.write_dataset(data, str(path / "partitioned"), format="ipc", partitioning=partitioning)
-    return data
 
-def fold_loader(START_YEAR: int, END_YEAR: int) -> pa.Table:
-    dataset = ds.dataset(source=partitioned_dir, format="ipc", partitioning="hive")
-    scanner = dataset.s(filter=(ds.field("year") >= ds.scalar(START_YEAR)) | (ds.field("year") <= ds.scalar(END_YEAR)))
-    for start_year, end_year in product([START_YEAR], range(START_YEAR+1, END_YEAR)):
-        yield dataset.to_table(filter=(ds.field("year") >= ds.scalar(start_year)) | (ds.field("year") < ds.scalar(end_year))), \
-                dataset.to_table(filter=(ds.field("year") == ds.scalar(end_year)))
-
-
-if __name__ == "__main__":
-    with initialize(config_path="../conf", job_name="fold_creation"):
-        cfg = compose(config_name="config")
-        processed_dir, partitioned_dir = itemgetter("processed", "partitioned")(cfg.datasets)
-        FIRST2_0 = preprocessing(cfg, save=True, path=Path(processed_dir))
+def create_partitions(cfg: DictConfig):
+    processed_dir = cfg.datasets.processed
+    preprocessing(cfg, save=True, path=Path(processed_dir))

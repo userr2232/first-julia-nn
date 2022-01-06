@@ -1,13 +1,15 @@
+root: ???
+
 datasets:
-  dir: data
-  processed: processed_${.dir}
-  selected: ${.dir}
-  partitioned: ${.processed_dir}/partitioned
-  train: ${.selected_dir}/train
-  valid: ${.selected_dir}/valid
-  test: ${.selected_dir}/test
-  julia: ${.selected_dir}/Data_Julia
-  sao: ${.selected_dir}/Completed_SAO_V3.hdf5
+  data: ${root}/data
+  processed: ${root}/processed_data
+  selected: ${.data}
+  partitioned: ${.processed}/partitioned
+  train: ${.selected}/train
+  valid: ${.selected}/valid
+  test: ${.selected}/test
+  julia: ${.selected}/Data_Julia
+  sao: ${.selected}/Completed_SAO_V3.hdf5
 
 training:
   device: cuda
@@ -16,3 +18,5 @@ training:
 years:
   start: 2000
   end: 2021
+
+action: create_partition
