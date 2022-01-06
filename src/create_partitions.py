@@ -9,11 +9,15 @@ import h5py
 from omegaconf import DictConfig
 import pyarrow as pa
 import pyarrow.dataset as ds
+from pyarrow import fs
 from typing import Union, Optional
+from itertools import product
+
 
 def preprocessing(cfg: DictConfig, save: bool = False, path: Optional[Union[str, Path]] = None) -> pa.Table:
-    if save: assert(path is not None)
-    path = Path(path)
+    if save:
+        assert(path is not None)
+        path = Path(path)
     fabiano_ESF = pd.DataFrame(columns=['LT', 'ESF'])
     months = ['03', '06', '09', '12']
     START_YEAR, END_YEAR = itemgetter('start', 'end')(cfg.years)
@@ -64,13 +68,20 @@ def preprocessing(cfg: DictConfig, save: bool = False, path: Optional[Union[str,
     FIRST2_0['year'] = FIRST2_0.LT_y.dt.year
     data = pa.Table.from_pandas(FIRST2_0)
     if save:
-        ds.write_dataset(data, str(path / "partitioned"), format="ipc",
-                            partitioning=ds.partitioning(pa.schema([("year", pa.int16())])))
+        partitioning = ds.partitioning(pa.schema([("year", pa.int16())]), flavor="hive")
+        ds.write_dataset(data, str(path / "partitioned"), format="ipc", partitioning=partitioning)
     return data
+
+def fold_loader(START_YEAR: int, END_YEAR: int) -> pa.Table:
+    dataset = ds.dataset(source=partitioned_dir, format="ipc", partitioning="hive")
+    scanner = dataset.s(filter=(ds.field("year") >= ds.scalar(START_YEAR)) | (ds.field("year") <= ds.scalar(END_YEAR)))
+    for start_year, end_year in product([START_YEAR], range(START_YEAR+1, END_YEAR)):
+        yield dataset.to_table(filter=(ds.field("year") >= ds.scalar(start_year)) | (ds.field("year") < ds.scalar(end_year))), \
+                dataset.to_table(filter=(ds.field("year") == ds.scalar(end_year)))
 
 
 if __name__ == "__main__":
     with initialize(config_path="../conf", job_name="fold_creation"):
         cfg = compose(config_name="config")
-        FIRST2_0 = preprocessing(cfg, save=True, path=Path(cfg.datasets.processed_dir))
-        
+        processed_dir, partitioned_dir = itemgetter("processed", "partitioned")(cfg.datasets)
+        FIRST2_0 = preprocessing(cfg, save=True, path=Path(processed_dir))

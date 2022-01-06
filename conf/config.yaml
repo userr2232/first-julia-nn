@@ -1,7 +1,8 @@
 datasets:
   dir: data
-  processed_dir: processed_${.dir}
-  selected_dir: ${.dir}
+  processed: processed_${.dir}
+  selected: ${.dir}
+  partitioned: ${.processed_dir}/partitioned
   train: ${.selected_dir}/train
   valid: ${.selected_dir}/valid
   test: ${.selected_dir}/test
