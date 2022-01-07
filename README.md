@@ -9,7 +9,7 @@ pip install -r requirements.txt
 ```
 python src/main.py root=(pwd)
 ```
-4. Generate folds and run training
+4. Generate folds and run study
 ```
-python src/main.py root=(cwd) action=train
+python src/main.py root=(cwd) action=run_study
 ```

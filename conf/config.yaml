@@ -14,9 +14,22 @@ datasets:
 training:
   device: cuda
   epochs: 1000
+  logger: "trainer"
 
 years:
   start: 2000
   end: 2021
+
+hpo:
+  ntrials: 5
+  logger: "optuna"
+  min_lr: 1e-6
+  max_lr: 1e-1
+  min_nlayers: 2
+  max_nlayers: 20
+  min_nunits: 4
+  max_nunits: 128
+  min_dropout: 0.05
+  max_dropout: 0.5
 
 action: create_partition
