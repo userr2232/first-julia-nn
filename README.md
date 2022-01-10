@@ -13,3 +13,9 @@ python src/main.py root=(pwd)
 ```
 python src/main.py root=(cwd) action=run_study
 ```
+
+## Other instructions
+1. Compile C++ (Arrow/Plasma)
+```
+clang++ src/test.cc --std=c++17 -larrow -lplasma
+```
