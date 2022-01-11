@@ -12,6 +12,8 @@ UTC5_offset = 5 * 60 * 60
 df['datetime'] = pd.to_datetime(df['UT1_UNIX']-UTC5_offset, unit='s')
 df.drop(columns=['UT1_UNIX'], inplace=True)
 df.sort_values(by='datetime', inplace=True)
+df.dropna(inplace=True)
+df.reset_index(drop=True, inplace=True)
 table = pa.Table.from_pandas(df)
 # print(table.schema)
 client = plasma.connect('/tmp/plasma')

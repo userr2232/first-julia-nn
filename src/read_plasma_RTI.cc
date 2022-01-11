@@ -59,19 +59,16 @@ void read_vectors(const std::shared_ptr<arrow::Table>& table) {
     int min_height{200}, max_height{800};
     auto datetime = table->GetColumnByName(std::string("datetime"));
     auto l = datetime->length();
+    int64_t year;
     {
-        auto result = datetime->GetScalar(l/2);
-        if(result.ok()) {
-            auto date = result.ValueOrDie();
-            std::cout << "type: " << date->type->name() << std::endl;
-            std::cout << "value: " << date->ToString() << std::endl;
-            std::cout << "year: " << arrow::compute::Year(arrow::Datum(date)).ValueOrDie().scalar()->ToString() << std::endl;
-
-        }
-        else {
-            ARROW_LOG(ERROR) << result.status();
-        }
+        auto _date = datetime->GetScalar(l/2).ValueOrDie();
+        auto _year = *static_cast<int64_t *>(
+                        const_cast<arrow::Int64Scalar&>(
+                            arrow::compute::Year(arrow::Datum(_date)).ValueOrDie().scalar_as<arrow::Int64Scalar>())
+                                    .mutable_data());
+        year = _year;
     }
+    std::cout << "year: " << year << std::endl;
 }
 
 int main() {
