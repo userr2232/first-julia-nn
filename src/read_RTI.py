@@ -11,22 +11,23 @@ df = pd.read_table(file_name, sep='\s+', \
 UTC5_offset = 5 * 60 * 60
 df['datetime'] = pd.to_datetime(df['UT1_UNIX']-UTC5_offset, unit='s')
 df.drop(columns=['UT1_UNIX'], inplace=True)
+df.sort_values(by='datetime', inplace=True)
 table = pa.Table.from_pandas(df)
-print(table.schema)
-# client = plasma.connect('/tmp/plasma')
-# random_num = np.random.bytes(20)
-# print("random_num", random_num)
-# object_id = plasma.ObjectID(random_num)
-# sink = pa.MockOutputStream()
-# with pa.RecordBatchStreamWriter(sink, table.schema) as stream_writer:
-#     stream_writer.write_table(table)
-# data_size = sink.size()
-# buf = client.create(object_id, data_size)
-# stream = pa.FixedSizeBufferWriter(buf)
-# with pa.RecordBatchStreamWriter(stream, table.schema) as stream_writer:
-#     stream_writer.write_table(table)
-# client.seal(object_id)
-# print("sealed object_id", object_id)
+# print(table.schema)
+client = plasma.connect('/tmp/plasma')
+random_num = np.random.bytes(20)
+print("random_num", random_num)
+object_id = plasma.ObjectID(random_num)
+sink = pa.MockOutputStream()
+with pa.RecordBatchStreamWriter(sink, table.schema) as stream_writer:
+    stream_writer.write_table(table)
+data_size = sink.size()
+buf = client.create(object_id, data_size)
+stream = pa.FixedSizeBufferWriter(buf)
+with pa.RecordBatchStreamWriter(stream, table.schema) as stream_writer:
+    stream_writer.write_table(table)
+client.seal(object_id)
+print("sealed object_id", object_id)
 
 
 

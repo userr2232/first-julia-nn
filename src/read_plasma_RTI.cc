@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+
 #include <arrow/api.h>
 #include <plasma/client.h>
 #include <plasma/common.h>
@@ -14,6 +15,10 @@
 #include <arrow/io/memory.h>
 #include <arrow/ipc/writer.h>
 #include <arrow/ipc/reader.h>
+#include <arrow/datum.h>
+#include <arrow/compute/api_scalar.h>
+
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 typedef std::vector<std::shared_ptr<arrow::Table>> TableVector;
 
@@ -49,6 +54,26 @@ TableVector read_tables(plasma::PlasmaClient& client) {
     return tables;
 }
 
+void read_vectors(const std::shared_ptr<arrow::Table>& table) {
+    uint8_t time_resolution{1}, height_resolution{5};
+    int min_height{200}, max_height{800};
+    auto datetime = table->GetColumnByName(std::string("datetime"));
+    auto l = datetime->length();
+    {
+        auto result = datetime->GetScalar(l/2);
+        if(result.ok()) {
+            auto date = result.ValueOrDie();
+            std::cout << "type: " << date->type->name() << std::endl;
+            std::cout << "value: " << date->ToString() << std::endl;
+            std::cout << "year: " << arrow::compute::Year(arrow::Datum(date)).ValueOrDie().scalar()->ToString() << std::endl;
+
+        }
+        else {
+            ARROW_LOG(ERROR) << result.status();
+        }
+    }
+}
+
 int main() {
     plasma::PlasmaClient client;
     ARROW_CHECK_OK(client.Connect("/tmp/plasma", "", 0));
@@ -56,7 +81,8 @@ int main() {
     for(const auto& table: tables)
         for(const auto& field : table->fields())
             std::cout << field->ToString() << std::endl;
-    
+    for(const auto& table : tables)
+        read_vectors(table);
 
     ARROW_CHECK_OK(client.Disconnect());
 }
