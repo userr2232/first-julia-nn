@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <utility>
 
 #include <arrow/api.h>
 #include <plasma/client.h>
@@ -23,6 +24,12 @@
 #include <boost/date_time.hpp>
 
 typedef std::vector<std::shared_ptr<arrow::Table>> TableVector;
+
+const int min_height{200}, max_height{800}, hours{12};
+const uint8_t time_resolution{1}, height_resolution{5};
+
+const int height_dim = (max_height-min_height) / height_resolution;
+const int time_dim = hours * 60 / time_resolution;
 
 int64_t to_unixtime(boost::posix_time::ptime t) {
     auto diff = t - boost::posix_time::ptime(boost::gregorian::date(1970, boost::gregorian::Jan, 1));
@@ -61,9 +68,17 @@ TableVector read_tables(plasma::PlasmaClient& client) {
     return tables;
 }
 
+std::pair<size_t, size_t> compute_indices(int64_t time, int64_t height, boost::posix_time::ptime start, boost::posix_time::ptime end) {
+    auto start_unix = to_unixtime(start);
+    auto end_unix = to_unixtime(end);
+    // std::cout << "start_unix " << start_unix << " current time " << time << std::endl;
+    // std::cout << "difference " << time - start_unix << std::endl;
+    size_t time_idx = (time - start_unix) / (time_resolution * 60);
+    size_t height_idx = (height - min_height) / height_resolution;
+    return {time_idx, height_idx};
+}
+
 void read_vectors(const std::shared_ptr<arrow::Table>& table) {
-    uint8_t time_resolution{1}, height_resolution{5};
-    int min_height{200}, max_height{800};
     auto datetime_col = table->GetColumnByName(std::string("datetime"));
     auto heights_col = table->GetColumnByName(std::string("GDALT"));
     const auto l = datetime_col->length();
@@ -109,27 +124,11 @@ void read_vectors(const std::shared_ptr<arrow::Table>& table) {
             for(; i < l; ++i) {
                 auto height = std::static_pointer_cast<arrow::DoubleScalar>(heights_col->GetScalar(i).ValueOrDie())->value;
                 if(height < min_height || height > max_height) continue;
-                int64_t t_unix = std::static_pointer_cast<arrow::TimestampScalar>(datetime_col->GetScalar(i).ValueOrDie())->value / 1e9;
-                // std::cout << "comparing t_unix " << t_unix << " with end_t_unix " << end_t_unix << std::endl;
-                // std::cout << "comparing t_unix " << t_unix << " with start_t_unix " << start_t_unix << std::endl;
-                bool valid = true;
-                while(t_unix >= end_t_unix && ++day_itr <= _end_date) {
-                    valid = false;
-                    day = day_itr->day();
-                    month = day_itr->month();
 
-                    start_t = bpt::ptime(bg::date(year, month, day), bpt::time_duration(19, 0, 0));
-                    end_t = bpt::ptime(bg::date(year, month, day) + bg::days(1), bpt::time_duration(7, 0, 0));
-                    
-                    start_t_unix = to_unixtime(start_t);
-                    end_t_unix = to_unixtime(end_t);
-                    if(t_unix < end_t_unix) {
-                        --day_itr;
-                        break;
-                    }
-                }
-                if(!valid) break;
-                if(t_unix >= start_t_unix) bitmap[i] = true, ++count;
+                int64_t t_unix = std::static_pointer_cast<arrow::TimestampScalar>(datetime_col->GetScalar(i).ValueOrDie())->value / 1e9;
+                if(t_unix < start_t_unix) continue;
+                if(t_unix >= end_t_unix) break;
+                if(t_unix < end_t_unix) bitmap[i] = true, ++count;
             }
             if(count) {
                 std::cout << "number of observations between " << bpt::to_simple_string(start_t) << " and " << bpt::to_simple_string(end_t) << " is: " << count << std::endl;
@@ -139,8 +138,25 @@ void read_vectors(const std::shared_ptr<arrow::Table>& table) {
                 auto array = builder.Finish().ValueOrDie();
                 auto filtered = ac::Filter(arrow::Datum(table), arrow::Datum(array)).ValueOrDie().table();
                 auto filtered_datetime = filtered->GetColumnByName(std::string("datetime"));
-                auto x = filtered_datetime->GetScalar(0).ValueOrDie();
-                std::cout << x->ToString() << std::endl;
+                auto filtered_heights = filtered->GetColumnByName(std::string("GDALT"));
+                auto filtered_snr = filtered->GetColumnByName(std::string("SNL"));
+                std::vector<std::vector<int8_t>> mesh(time_dim, std::vector<int8_t>(height_dim));
+                std::vector<std::vector<bool>> valid(time_dim, std::vector<bool>(height_dim, false));
+                for(size_t j = 0; j < filtered->num_rows(); ++j) {
+                    int64_t time = std::static_pointer_cast<arrow::TimestampScalar>(filtered_datetime->GetScalar(j).ValueOrDie())->value / 1e9;
+                    // std::cout << "START TIME: " << bpt::to_simple_string(start_t) << std::endl;
+                    // std::cout << "CURRENT TIME: " << std::static_pointer_cast<arrow::TimestampScalar>(filtered_datetime->GetScalar(j).ValueOrDie())->ToString() << std::endl;
+                    // std::cout << "END TIME: " << bpt::to_simple_string(end_t) << std::endl;
+                    int64_t height = std::static_pointer_cast<arrow::DoubleScalar>(filtered_heights->GetScalar(j).ValueOrDie())->value;
+                    int8_t snr = round(std::static_pointer_cast<arrow::DoubleScalar>(filtered_snr->GetScalar(j).ValueOrDie())->value);
+                    // std::cout << "computing indices of " << height << " and " << time << std::endl;
+                    const auto& [t, h] = compute_indices(time, height, start_t, end_t);
+                    // std::cout << "t " << t << " h " << std::endl;
+                    mesh[t][h] = snr;
+                    valid[t][h] = true;
+                }
+                // auto x = filtered_datetime->GetScalar(0).ValueOrDie();
+                // std::cout << x->ToString() << std::endl;
             }
         } while(++day_itr <= _end_date);
     }
