@@ -65,6 +65,7 @@ void read_vectors(const std::shared_ptr<arrow::Table>& table) {
     uint8_t time_resolution{1}, height_resolution{5};
     int min_height{200}, max_height{800};
     auto datetime_col = table->GetColumnByName(std::string("datetime"));
+    auto heights_col = table->GetColumnByName(std::string("GDALT"));
     const auto l = datetime_col->length();
     int64_t year;
     {
@@ -106,6 +107,8 @@ void read_vectors(const std::shared_ptr<arrow::Table>& table) {
             std::vector<bool> bitmap(l, false);
             int count{0};
             for(; i < l; ++i) {
+                auto height = std::static_pointer_cast<arrow::DoubleScalar>(heights_col->GetScalar(i).ValueOrDie())->value;
+                if(height < min_height || height > max_height) continue;
                 int64_t t_unix = std::static_pointer_cast<arrow::TimestampScalar>(datetime_col->GetScalar(i).ValueOrDie())->value / 1e9;
                 // std::cout << "comparing t_unix " << t_unix << " with end_t_unix " << end_t_unix << std::endl;
                 // std::cout << "comparing t_unix " << t_unix << " with start_t_unix " << start_t_unix << std::endl;
@@ -131,8 +134,8 @@ void read_vectors(const std::shared_ptr<arrow::Table>& table) {
             if(count) {
                 std::cout << "number of observations between " << bpt::to_simple_string(start_t) << " and " << bpt::to_simple_string(end_t) << " is: " << count << std::endl;
                 arrow::BooleanBuilder builder;
-                builder.Reserve(l);
-                builder.AppendValues(bitmap);
+                ARROW_CHECK_OK(builder.Reserve(l));
+                ARROW_CHECK_OK(builder.AppendValues(bitmap));
                 auto array = builder.Finish().ValueOrDie();
                 auto filtered = ac::Filter(arrow::Datum(table), arrow::Datum(array)).ValueOrDie().table();
                 auto filtered_datetime = filtered->GetColumnByName(std::string("datetime"));

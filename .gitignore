@@ -166,3 +166,6 @@ share/
 
 # hydra
 outputs/
+
+#compiled
+a.out
