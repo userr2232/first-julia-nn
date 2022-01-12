@@ -17,6 +17,7 @@
 #include <arrow/ipc/reader.h>
 #include <arrow/datum.h>
 #include <arrow/compute/api_scalar.h>
+#include <arrow/compute/api_vector.h>
 
 #include <boost/date_time/date.hpp>
 #include <boost/date_time.hpp>
@@ -127,7 +128,17 @@ void read_vectors(const std::shared_ptr<arrow::Table>& table) {
                 if(!valid) break;
                 if(t_unix >= start_t_unix) bitmap[i] = true, ++count;
             }
-            if(count) std::cout << "number of observations between " << bpt::to_simple_string(start_t) << " and " << bpt::to_simple_string(end_t) << " is: " << count << std::endl;
+            if(count) {
+                std::cout << "number of observations between " << bpt::to_simple_string(start_t) << " and " << bpt::to_simple_string(end_t) << " is: " << count << std::endl;
+                arrow::BooleanBuilder builder;
+                builder.Reserve(l);
+                builder.AppendValues(bitmap);
+                auto array = builder.Finish().ValueOrDie();
+                auto filtered = ac::Filter(arrow::Datum(table), arrow::Datum(array)).ValueOrDie().table();
+                auto filtered_datetime = filtered->GetColumnByName(std::string("datetime"));
+                auto x = filtered_datetime->GetScalar(0).ValueOrDie();
+                std::cout << x->ToString() << std::endl;
+            }
         } while(++day_itr <= _end_date);
     }
 }
