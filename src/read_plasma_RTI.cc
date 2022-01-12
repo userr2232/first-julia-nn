@@ -18,9 +18,15 @@
 #include <arrow/datum.h>
 #include <arrow/compute/api_scalar.h>
 
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/date.hpp>
+#include <boost/date_time.hpp>
 
 typedef std::vector<std::shared_ptr<arrow::Table>> TableVector;
+
+int64_t to_unixtime(boost::posix_time::ptime t) {
+    auto diff = t - boost::posix_time::ptime(boost::gregorian::date(1970, boost::gregorian::Jan, 1));
+    return diff.total_seconds();
+}
 
 TableVector read_tables(plasma::PlasmaClient& client) {
     plasma::ObjectTable objTable;
@@ -57,18 +63,73 @@ TableVector read_tables(plasma::PlasmaClient& client) {
 void read_vectors(const std::shared_ptr<arrow::Table>& table) {
     uint8_t time_resolution{1}, height_resolution{5};
     int min_height{200}, max_height{800};
-    auto datetime = table->GetColumnByName(std::string("datetime"));
-    auto l = datetime->length();
+    auto datetime_col = table->GetColumnByName(std::string("datetime"));
+    const auto l = datetime_col->length();
     int64_t year;
     {
-        auto _date = datetime->GetScalar(l/2).ValueOrDie();
+        auto _date = datetime_col->GetScalar(l/2).ValueOrDie();
         auto _year = *static_cast<int64_t *>(
                         const_cast<arrow::Int64Scalar&>(
                             arrow::compute::Year(arrow::Datum(_date)).ValueOrDie().scalar_as<arrow::Int64Scalar>())
                                     .mutable_data());
         year = _year;
     }
-    std::cout << "year: " << year << std::endl;
+    {
+        namespace bg = boost::gregorian;
+        namespace bpt = boost::posix_time;
+        namespace ac = arrow::compute;
+        bg::day_iterator day_itr(bg::date(year, bg::Jan, 1));
+        auto _end_date = bg::date(year, bg::Dec, 31);
+        size_t i{0};
+        do {
+            // std::cout << to_simple_string(*day_itr) << std::endl;
+            auto day = day_itr->day();
+            auto month = day_itr->month();
+            
+            // auto second_unit = ;
+            // second_unit()
+            auto SECONDS = arrow::timestamp(arrow::TimeUnit::SECOND);
+            arrow::TimestampScalar x(0, SECONDS);
+            arrow::TimestampScalar y(1, SECONDS);
+            // std::cout << x.ToString() << " " << y.ToString() << std::endl;
+            auto _some_date = bg::date(2020, 10, 30);
+            arrow::TimestampScalar z(to_unixtime(bpt::ptime(_some_date)), SECONDS);
+            // std::cout << "special date " << z.ToString() << std::endl;
+            // std::cout << "x value: " << x.value << std::endl;
+            auto start_t = bpt::ptime(bg::date(year, month, day), bpt::time_duration(19, 0, 0));
+            auto end_t = bpt::ptime(bg::date(year, month, day) + bg::days(1), bpt::time_duration(7, 0, 0));
+            
+            auto start_t_unix = to_unixtime(start_t);
+            auto end_t_unix = to_unixtime(end_t);
+
+            std::vector<bool> bitmap(l, false);
+            int count{0};
+            for(; i < l; ++i) {
+                int64_t t_unix = std::static_pointer_cast<arrow::TimestampScalar>(datetime_col->GetScalar(i).ValueOrDie())->value / 1e9;
+                // std::cout << "comparing t_unix " << t_unix << " with end_t_unix " << end_t_unix << std::endl;
+                // std::cout << "comparing t_unix " << t_unix << " with start_t_unix " << start_t_unix << std::endl;
+                bool valid = true;
+                while(t_unix >= end_t_unix && ++day_itr <= _end_date) {
+                    valid = false;
+                    day = day_itr->day();
+                    month = day_itr->month();
+
+                    start_t = bpt::ptime(bg::date(year, month, day), bpt::time_duration(19, 0, 0));
+                    end_t = bpt::ptime(bg::date(year, month, day) + bg::days(1), bpt::time_duration(7, 0, 0));
+                    
+                    start_t_unix = to_unixtime(start_t);
+                    end_t_unix = to_unixtime(end_t);
+                    if(t_unix < end_t_unix) {
+                        --day_itr;
+                        break;
+                    }
+                }
+                if(!valid) break;
+                if(t_unix >= start_t_unix) bitmap[i] = true, ++count;
+            }
+            if(count) std::cout << "number of observations between " << bpt::to_simple_string(start_t) << " and " << bpt::to_simple_string(end_t) << " is: " << count << std::endl;
+        } while(++day_itr <= _end_date);
+    }
 }
 
 int main() {
