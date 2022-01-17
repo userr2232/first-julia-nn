@@ -3,11 +3,13 @@
 #include <vector>
 #include <memory>
 #include <utility>
+#include <cassert>
 
 #include <arrow/api.h>
 #include <plasma/client.h>
 #include <plasma/common.h>
 #include <arrow/util/logging.h>
+#include <arrow/util/key_value_metadata.h>
 #include <arrow/tensor.h>
 #include <arrow/array.h>
 #include <arrow/table.h>
@@ -19,6 +21,7 @@
 #include <arrow/datum.h>
 #include <arrow/compute/api_scalar.h>
 #include <arrow/compute/api_vector.h>
+#include <arrow/chunked_array.h>
 
 #include <boost/date_time/date.hpp>
 #include <boost/date_time.hpp>
@@ -65,7 +68,19 @@ TableVector read_tables(plasma::PlasmaClient& client) {
             ARROW_LOG(ERROR) << result.status();
         }
     }
+    ARROW_CHECK_OK(client.Delete(obj_ids));
     return tables;
+}
+
+std::vector<int8_t> flatten(std::vector<std::vector<int8_t>>& v) {
+    size_t total_size = 0;
+    for(auto& sub : v)
+        total_size += sub.size();
+    std::vector<int8_t> result;
+    result.reserve(total_size);
+    for (auto& sub : v)
+        result.insert(result.end(), sub.begin(), sub.end());
+    return result;
 }
 
 std::pair<size_t, size_t> compute_indices(int64_t time, int64_t height, boost::posix_time::ptime start, boost::posix_time::ptime end) {
@@ -78,7 +93,7 @@ std::pair<size_t, size_t> compute_indices(int64_t time, int64_t height, boost::p
     return {time_idx, height_idx};
 }
 
-void read_vectors(const std::shared_ptr<arrow::Table>& table) {
+std::pair<std::vector<std::string>, std::vector<std::shared_ptr<arrow::ChunkedArray>>> read_arrays(const std::shared_ptr<arrow::Table>& table) {
     auto datetime_col = table->GetColumnByName(std::string("datetime"));
     auto heights_col = table->GetColumnByName(std::string("GDALT"));
     const auto l = datetime_col->length();
@@ -91,6 +106,8 @@ void read_vectors(const std::shared_ptr<arrow::Table>& table) {
                                     .mutable_data());
         year = _year;
     }
+    std::vector<std::shared_ptr<arrow::ChunkedArray>> chunked_arrays;
+    std::vector<std::string> date_strs;
     {
         namespace bg = boost::gregorian;
         namespace bpt = boost::posix_time;
@@ -155,12 +172,29 @@ void read_vectors(const std::shared_ptr<arrow::Table>& table) {
                     mesh[t][h] = snr;
                     valid[t][h] = true;
                 }
+                arrow::ArrayVector chunks;
+                for(int i = 0; i < mesh.size(); ++i) {
+                    auto& mesh_row = mesh[i];
+                    auto& validity_row = valid[i];
+                    arrow::Int8Builder builder;
+                    ARROW_CHECK_OK(builder.Reserve(mesh_row.size()));
+                    ARROW_CHECK_OK(builder.AppendValues(mesh_row, validity_row));
+                    auto chunk = builder.Finish().ValueOrDie();
+                    chunks.emplace_back(chunk);
+                }
+                auto chunked_array = arrow::ChunkedArray::Make(chunks, arrow::int8()).ValueOrDie();
+                chunked_arrays.push_back(chunked_array);
+                auto current_date = bpt::ptime(bg::date(year, month, day));
+                date_strs.emplace_back(bpt::to_simple_string(current_date));
                 // auto x = filtered_datetime->GetScalar(0).ValueOrDie();
                 // std::cout << x->ToString() << std::endl;
             }
         } while(++day_itr <= _end_date);
     }
+    return {date_strs, chunked_arrays};
 }
+
+
 
 int main() {
     plasma::PlasmaClient client;
@@ -169,9 +203,21 @@ int main() {
     for(const auto& table: tables)
         for(const auto& field : table->fields())
             std::cout << field->ToString() << std::endl;
-    for(const auto& table : tables)
-        read_vectors(table);
-
+    for(const auto& table : tables) {
+        const auto& [date_strs, chunked_arrays] = read_arrays(table);
+        // TODO: schema
+        std::vector<std::shared_ptr<arrow::Field>> fields(date_strs.size());
+        for(int i = 0; i < fields.size(); ++i) {
+            auto& field = fields[i];
+            auto& date_str = date_strs[i];
+            field = arrow::field(date_str, arrow::int8());
+        }
+        auto metadata = arrow::KeyValueMetadata::Make({"min_height", "max_height", "hours", "time_resolution", "height_resolution"}, 
+                                                        {std::to_string(min_height), std::to_string(max_height), std::to_string(hours), 
+                                                            std::to_string(time_resolution), std::to_string(height_resolution)});
+        auto schema = arrow::schema(fields, metadata);
+        auto new_table = arrow::Table::Make(schema, chunked_arrays);
+    }
     ARROW_CHECK_OK(client.Disconnect());
 }
 
