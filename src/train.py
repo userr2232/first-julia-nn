@@ -8,7 +8,7 @@ import logging
 import optuna
 from numpy.typing import ArrayLike
 import pyarrow as pa
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 from optuna.trial import Trial
 from functools import partial
 
@@ -20,14 +20,14 @@ from src.dataset import get_dataloaders
 
 def run_training(cfg: DictConfig, fold: Tuple[pa.Table, pa.Table], params: Optional[Dict], trial: Optional[Trial], save_model: bool = False) -> ArrayLike:
     epochs, device, logger_name = itemgetter("epochs", "device", "logger")(cfg.training)
-    model = Model(nfeatures=7, ntargets=1, params=params, trial=trial)
-    optimizer = optim.Adam(model.parameters(), lr=params.lr)
+    model = Model(nfeatures=7, ntargets=1, cfg=cfg, params=params, trial=trial)
+    optimizer = optim.Adam(model.parameters(), lr=params.get("lr", cfg.hpo.default_lr))
     engine = Engine(model, optimizer, device=device)
     best_loss = np.inf
     early_stopping_iter = 10
     early_stopping_counter = 0
-    training_table, validation_table = fold
-    train_loader, valid_loader = get_dataloaders(training_table, validation_table)
+    train_table, valid_table = fold
+    train_loader, valid_loader = get_dataloaders(train_table, valid_table)
     logger = logging.getLogger(logger_name)
     for epoch in range(epochs):
         train_loss = engine.train(train_loader)

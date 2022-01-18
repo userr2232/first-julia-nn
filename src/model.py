@@ -21,12 +21,16 @@ class Activation(Enum):
     def builder(cls: Activation, name: str) -> nn.Module:
         return cls.__members__[name].value
 
+    @classmethod
+    def dir(cls: Activation) -> List[str]:
+        return ['ELU', 'LeakyReLU', 'ReLU', 'RReLU', 'SELU', 'CELU']
 
 class Model(nn.Module):
-    def __init__(self, nfeatures: int, ntargets: int, params: Optional[Dict], trial: Optional[optuna.trial.Trial]) -> None:
+    def __init__(self, nfeatures: int, ntargets: int, cfg: DictConfig, params: Optional[Dict], trial: Optional[optuna.trial.Trial]) -> None:
         super().__init__()
         self.trial = trial
         self.params = params
+        self.cfg = cfg
         activation = self.param_getter("activation")
         in_features = nfeatures
         nlayers = self.param_getter("nlayers")
@@ -44,13 +48,13 @@ class Model(nn.Module):
     def forward(self, x) -> torch.Tensor:
         return self.model(x)
 
-    def param_getter(self, param_name: str, cfg: DictConfig) -> Any:
-        min_nlayers, max_nlayers = itemgetter('min_nlayers', 'max_nlayers')(cfg.hpo)
-        min_nunits, max_nunits = itemgetter('min_nunits', 'max_nunits')(cfg.hpo)
-        min_dropout, max_dropout = itemgetter('min_dropout', 'max_dropout')(cfg.hpo)
+    def param_getter(self, param_name: str) -> Any:
+        min_nlayers, max_nlayers = itemgetter('min_nlayers', 'max_nlayers')(self.cfg.hpo)
+        min_nunits, max_nunits = itemgetter('min_nunits', 'max_nunits')(self.cfg.hpo)
+        min_dropout, max_dropout = itemgetter('min_dropout', 'max_dropout')(self.cfg.hpo)
         def trial_suggest(param_name: str) -> Any:
             if param_name == "activation":
-                return Activation.builder(self.trial.suggest_categorical(param_name, dir(Activation)))
+                return Activation.builder(self.trial.suggest_categorical(param_name, Activation.dir()))
             elif param_name == "nlayers":
                 return self.trial.suggest_int(param_name, min_nlayers, max_nlayers)
             elif re.match(r"^n_units_l\d+$", param_name):
