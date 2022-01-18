@@ -16,7 +16,7 @@ class JuliaDataset(Dataset):
 
     def __getitem__(self, idx: int):
         row = self.df.iloc[idx]
-        return torch.tensor([row[['V_hF', 'V_hF_prev', 'F10.7', 'F10.7 (90d)', 'AP', 'AP (24h)', 'DNS', 'DNC']]], dtype=torch.float32, requires_grad=True), \
+        return torch.tensor(row[['V_hF', 'V_hF_prev', 'F10.7', 'F10.7 (90d)', 'AP', 'AP (24h)', 'DNS', 'DNC']], dtype=torch.float32, requires_grad=True), \
                 torch.tensor([row.ESF_binary], dtype=torch.float32, requires_grad=True)
 
     def preprocessing(self):

@@ -16,18 +16,20 @@ from src.folds import fold_loader
 from src.model import Model
 from src.engine import Engine
 from src.dataset import get_dataloaders
+from src.utils import dotdict
 
 
 def run_training(cfg: DictConfig, fold: Tuple[pa.Table, pa.Table], params: Optional[Dict], trial: Optional[Trial], save_model: bool = False) -> ArrayLike:
     epochs, device, logger_name = itemgetter("epochs", "device", "logger")(cfg.training)
-    model = Model(nfeatures=7, ntargets=1, cfg=cfg, params=params, trial=trial)
-    optimizer = optim.Adam(model.parameters(), lr=params.get("lr", cfg.hpo.default_lr))
+    model = Model(nfeatures=8, ntargets=1, cfg=cfg, params=params, trial=trial)
+    optimizer = optim.Adam(model.parameters(), lr=params.lr)
     engine = Engine(model, optimizer, device=device)
     best_loss = np.inf
     early_stopping_iter = 10
     early_stopping_counter = 0
     train_table, valid_table = fold
     train_loader, valid_loader = get_dataloaders(train_table, valid_table)
+    train_batch, valid_batch = iter(train_loader).next(), iter(valid_loader).next()
     logger = logging.getLogger(logger_name)
     for epoch in range(epochs):
         train_loss = engine.train(train_loader)
@@ -52,7 +54,7 @@ def objective(trial: optuna.trial.Trial, cfg: DictConfig) -> ArrayLike:
     }
     all_losses = []
     for fold in fold_loader(cfg=cfg):
-        tmp_loss = run_training(cfg=cfg, fold=fold, params=params, trial=trial)
+        tmp_loss = run_training(cfg=cfg, fold=fold, params=dotdict(params), trial=trial)
         all_losses.append(tmp_loss)
     return np.mean(all_losses)
 
