@@ -14,6 +14,11 @@ python main.py root=(pwd)
 python main.py root=(cwd) action=run_study
 ```
 
+To train using CPU:
+```
+python main.py root=(cwd) action=run_study training.device=cpu
+```
+
 ## Other instructions
 1. Compile C++ (Arrow/Plasma)
 ```
