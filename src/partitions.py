@@ -4,7 +4,6 @@ import pandas as pd
 import seaborn as sns
 import numpy as np
 from operator import itemgetter
-from utils import date_parser
 import h5py
 from omegaconf import DictConfig
 import pyarrow as pa
@@ -13,6 +12,8 @@ from pyarrow import fs
 from typing import Dict, Union, Optional
 from itertools import product
 from os import chdir
+
+from src.utils import date_parser
 
 
 def preprocessing(cfg: DictConfig, save: bool = False, path: Optional[Union[str, Path]] = None) -> None:

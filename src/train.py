@@ -1,13 +1,9 @@
-from folds import fold_loader
 import hydra
 from omegaconf import DictConfig
 from operator import itemgetter
 import numpy as np
 import torch
 from torch import optim
-from .model import Model
-from .engine import Engine
-from .dataset import get_dataloaders
 import logging
 import optuna
 from numpy.typing import ArrayLike
@@ -15,6 +11,11 @@ import pyarrow as pa
 from typing import Dict, Optional
 from optuna.trial import Trial
 from functools import partial
+
+from src.folds import fold_loader
+from src.model import Model
+from src.engine import Engine
+from src.dataset import get_dataloaders
 
 
 def run_training(cfg: DictConfig, fold: pa.Table, params: Optional[Dict], trial: Optional[Trial], save_model: bool = False) -> ArrayLike:

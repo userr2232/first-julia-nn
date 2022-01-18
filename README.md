@@ -7,11 +7,11 @@ pip install -r requirements.txt
 ```
 3. Create partitions
 ```
-python src/main.py root=(pwd)
+python main.py root=(pwd)
 ```
 4. Generate folds and run study
 ```
-python src/main.py root=(cwd) action=run_study
+python main.py root=(cwd) action=run_study
 ```
 
 ## Other instructions

@@ -1,13 +1,12 @@
 import hydra
 from omegaconf import DictConfig
-from partitions import create_partitions
-from folds import fold_loader
 from pathlib import Path
 from typing import Union
-from train import run_study
+from src.train import run_study
+from src.partitions import create_partitions
 
 
-@hydra.main(config_path="../conf", config_name="config")
+@hydra.main(config_path="conf", config_name="config")
 def main(cfg: DictConfig) -> None:
     action = cfg.action
     if action == "create_partition":
