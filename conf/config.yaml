@@ -5,8 +5,6 @@ datasets:
   processed: ${root}/processed_data
   selected: ${.data}
   partitioned: ${.processed}/partitioned
-  train: ${.selected}/train
-  valid: ${.selected}/valid
   test: ${.selected}/test
   julia: ${.selected}/Data_Julia
   sao: ${.selected}/Completed_SAO_V3.hdf5

@@ -18,16 +18,16 @@ from src.engine import Engine
 from src.dataset import get_dataloaders
 
 
-def run_training(cfg: DictConfig, fold: pa.Table, params: Optional[Dict], trial: Optional[Trial], save_model: bool = False) -> ArrayLike:
+def run_training(cfg: DictConfig, fold: Tuple[pa.Table, pa.Table], params: Optional[Dict], trial: Optional[Trial], save_model: bool = False) -> ArrayLike:
     epochs, device, logger_name = itemgetter("epochs", "device", "logger")(cfg.training)
-    model = Model(nfeatures=..., ntargets=..., params=params, trial=trial)
+    model = Model(nfeatures=7, ntargets=1, params=params, trial=trial)
     optimizer = optim.Adam(model.parameters(), lr=params.lr)
     engine = Engine(model, optimizer, device=device)
     best_loss = np.inf
     early_stopping_iter = 10
     early_stopping_counter = 0
-    train_path, valid_path = itemgetter("train", "valid")(cfg.datasets)
-    train_loader, valid_loader = get_dataloaders(train_path, valid_path)
+    training_table, validation_table = fold
+    train_loader, valid_loader = get_dataloaders(training_table, validation_table)
     logger = logging.getLogger(logger_name)
     for epoch in range(epochs):
         train_loss = engine.train(train_loader)

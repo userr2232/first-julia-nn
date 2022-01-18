@@ -3,9 +3,10 @@ from operator import itemgetter
 import pyarrow as pa
 import pyarrow.dataset as ds
 from itertools import product
+from typing import Iterator, Tuple
 
 
-def fold_loader(cfg: DictConfig) -> pa.Table:
+def fold_loader(cfg: DictConfig) -> Iterator[Tuple[pa.Table, pa.Table]]:
     START_YEAR, END_YEAR = itemgetter('start', 'end')(cfg.years)
     partitioned_dir = cfg.datasets.partitioned
     dataset = ds.dataset(source=partitioned_dir, format="ipc", partitioning="hive")
