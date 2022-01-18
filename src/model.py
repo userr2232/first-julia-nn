@@ -26,7 +26,7 @@ class Activation(Enum):
         return ['ELU', 'LeakyReLU', 'ReLU', 'RReLU', 'SELU', 'CELU']
 
 class Model(nn.Module):
-    def __init__(self, nfeatures: int, ntargets: int, cfg: DictConfig, params: Optional[Dict], trial: Optional[optuna.trial.Trial]) -> None:
+    def __init__(self, nfeatures: int, ntargets: int, cfg: DictConfig, params: Optional[Dict], trial: Optional[optuna.trial.Trial] = None) -> None:
         super().__init__()
         self.trial = trial
         self.params = params
@@ -52,6 +52,7 @@ class Model(nn.Module):
         min_nlayers, max_nlayers = itemgetter('min_nlayers', 'max_nlayers')(self.cfg.hpo)
         min_nunits, max_nunits = itemgetter('min_nunits', 'max_nunits')(self.cfg.hpo)
         min_dropout, max_dropout = itemgetter('min_dropout', 'max_dropout')(self.cfg.hpo)
+        print("param_name", param_name)
         def trial_suggest(param_name: str) -> Any:
             if param_name == "activation":
                 return Activation.builder(self.trial.suggest_categorical(param_name, Activation.dir()))
@@ -63,4 +64,7 @@ class Model(nn.Module):
                 return self.trial.suggest_float(param_name, min_dropout, max_dropout)
             else:
                 raise ValueError("Invalid parameter name.")
-        return self.params.get(param_name, trial_suggest(param_name))
+        try:
+            return self.params[param_name] if param_name != "activation" else Activation.builder(self.params[param_name])
+        except KeyError:
+            return trial_suggest(param_name)
