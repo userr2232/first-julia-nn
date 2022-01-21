@@ -169,3 +169,5 @@ outputs/
 
 #compiled
 a.out
+
+.DS_Store
