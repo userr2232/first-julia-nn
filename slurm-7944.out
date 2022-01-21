@@ -1,0 +1,45 @@
+[32m[I 2022-01-21 10:33:15,977][0m A new study created in memory with name: no-name-828f7a57-e7d5-4a8e-a2c1-bc9ac0202edb[0m
+[33m[W 2022-01-21 10:33:15,980][0m Trial 0 failed because of the following error: FileNotFoundError('/home/reynaldo.rojas/deeplearning/first-julia-nn/processed_data/partitioned')[0m
+Traceback (most recent call last):
+  File "/home/reynaldo.rojas/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 213, in _run_trial
+    value_or_values = func(trial)
+  File "/home/reynaldo.rojas/deeplearning/first-julia-nn/src/train.py", line 54, in objective
+    for fold in fold_loader(cfg=cfg):
+  File "/home/reynaldo.rojas/deeplearning/first-julia-nn/src/folds.py", line 12, in fold_loader
+    dataset = ds.dataset(source=partitioned_dir, format="ipc", partitioning="hive")
+  File "/home/reynaldo.rojas/miniconda3/envs/deeplearning/lib/python3.9/site-packages/pyarrow/dataset.py", line 680, in dataset
+    return _filesystem_dataset(source, **kwargs)
+  File "/home/reynaldo.rojas/miniconda3/envs/deeplearning/lib/python3.9/site-packages/pyarrow/dataset.py", line 425, in _filesystem_dataset
+    fs, paths_or_selector = _ensure_single_source(source, filesystem)
+  File "/home/reynaldo.rojas/miniconda3/envs/deeplearning/lib/python3.9/site-packages/pyarrow/dataset.py", line 401, in _ensure_single_source
+    raise FileNotFoundError(path)
+FileNotFoundError: /home/reynaldo.rojas/deeplearning/first-julia-nn/processed_data/partitioned
+Error executing job with overrides: ['root=/home/reynaldo.rojas/deeplearning/first-julia-nn', 'action=run_study']
+Traceback (most recent call last):
+  File "/home/reynaldo.rojas/deeplearning/first-julia-nn/main.py", line 15, in main
+    run_study(cfg)
+  File "/home/reynaldo.rojas/deeplearning/first-julia-nn/src/train.py", line 63, in run_study
+    study.optimize(partial(objective, cfg=cfg), n_trials=ntrials)
+  File "/home/reynaldo.rojas/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/study.py", line 400, in optimize
+    _optimize(
+  File "/home/reynaldo.rojas/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 66, in _optimize
+    _optimize_sequential(
+  File "/home/reynaldo.rojas/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 163, in _optimize_sequential
+    trial = _run_trial(study, func, catch)
+  File "/home/reynaldo.rojas/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 264, in _run_trial
+    raise func_err
+  File "/home/reynaldo.rojas/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 213, in _run_trial
+    value_or_values = func(trial)
+  File "/home/reynaldo.rojas/deeplearning/first-julia-nn/src/train.py", line 54, in objective
+    for fold in fold_loader(cfg=cfg):
+  File "/home/reynaldo.rojas/deeplearning/first-julia-nn/src/folds.py", line 12, in fold_loader
+    dataset = ds.dataset(source=partitioned_dir, format="ipc", partitioning="hive")
+  File "/home/reynaldo.rojas/miniconda3/envs/deeplearning/lib/python3.9/site-packages/pyarrow/dataset.py", line 680, in dataset
+    return _filesystem_dataset(source, **kwargs)
+  File "/home/reynaldo.rojas/miniconda3/envs/deeplearning/lib/python3.9/site-packages/pyarrow/dataset.py", line 425, in _filesystem_dataset
+    fs, paths_or_selector = _ensure_single_source(source, filesystem)
+  File "/home/reynaldo.rojas/miniconda3/envs/deeplearning/lib/python3.9/site-packages/pyarrow/dataset.py", line 401, in _ensure_single_source
+    raise FileNotFoundError(path)
+FileNotFoundError: /home/reynaldo.rojas/deeplearning/first-julia-nn/processed_data/partitioned
+
+Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.

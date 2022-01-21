@@ -19,14 +19,14 @@ years:
   end: 2021
 
 hpo:
-  ntrials: 1
+  ntrials: 10
   logger: "optuna"
   min_lr: 1e-6
   max_lr: 1e-1
   min_nlayers: 2
-  max_nlayers: 3
+  max_nlayers: 20
   min_nunits: 4
-  max_nunits: 5
+  max_nunits: 128
   min_dropout: 0.05
   max_dropout: 0.5
 
