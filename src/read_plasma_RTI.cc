@@ -4,10 +4,15 @@
 #include <memory>
 #include <utility>
 #include <cassert>
+#include <sstream>
 
-#include <arrow/api.h>
+#include <parquet/exception.h>
+#include <parquet/arrow/writer.h>
+
 #include <plasma/client.h>
 #include <plasma/common.h>
+
+#include <arrow/api.h>
 #include <arrow/util/logging.h>
 #include <arrow/util/key_value_metadata.h>
 #include <arrow/tensor.h>
@@ -16,6 +21,7 @@
 #include <arrow/buffer.h>
 #include <arrow/type_fwd.h>
 #include <arrow/io/memory.h>
+#include <arrow/io/file.h>
 #include <arrow/ipc/writer.h>
 #include <arrow/ipc/reader.h>
 #include <arrow/datum.h>
@@ -68,7 +74,7 @@ TableVector read_tables(plasma::PlasmaClient& client) {
             ARROW_LOG(ERROR) << result.status();
         }
     }
-    ARROW_CHECK_OK(client.Delete(obj_ids));
+    // ARROW_CHECK_OK(client.Delete(obj_ids));
     return tables;
 }
 
@@ -119,7 +125,7 @@ std::pair<std::vector<std::string>, std::vector<std::shared_ptr<arrow::ChunkedAr
             // std::cout << to_simple_string(*day_itr) << std::endl;
             auto day = day_itr->day();
             auto month = day_itr->month();
-            
+            year = day_itr->year();
             // auto second_unit = ;
             // second_unit()
             auto SECONDS = arrow::timestamp(arrow::TimeUnit::SECOND);
@@ -185,7 +191,9 @@ std::pair<std::vector<std::string>, std::vector<std::shared_ptr<arrow::ChunkedAr
                 auto chunked_array = arrow::ChunkedArray::Make(chunks, arrow::int8()).ValueOrDie();
                 chunked_arrays.push_back(chunked_array);
                 auto current_date = bpt::ptime(bg::date(year, month, day));
-                date_strs.emplace_back(bpt::to_simple_string(current_date));
+                std::ostringstream os;
+                os << year << "_" << month << "_" << day;
+                date_strs.emplace_back(os.str());
                 // auto x = filtered_datetime->GetScalar(0).ValueOrDie();
                 // std::cout << x->ToString() << std::endl;
             }
@@ -217,6 +225,9 @@ int main() {
                                                             std::to_string(time_resolution), std::to_string(height_resolution)});
         auto schema = arrow::schema(fields, metadata);
         auto new_table = arrow::Table::Make(schema, chunked_arrays);
+        std::shared_ptr<arrow::io::FileOutputStream> outputfile;
+        PARQUET_ASSIGN_OR_THROW(outputfile, arrow::io::FileOutputStream::Open("RTIs.parquet"));
+        PARQUET_THROW_NOT_OK(parquet::arrow::WriteTable(*new_table, arrow::default_memory_pool(), outputfile, 20));
     }
     ARROW_CHECK_OK(client.Disconnect());
 }
