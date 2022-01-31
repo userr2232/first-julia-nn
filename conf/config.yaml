@@ -11,7 +11,7 @@ datasets:
 
 training:
   device: cuda
-  epochs: 1
+  epochs: 15
   logger: "trainer"
 
 years:

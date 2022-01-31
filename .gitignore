@@ -168,6 +168,6 @@ share/
 outputs/
 
 #compiled
-*.out
+a.out
 
 .DS_Store
