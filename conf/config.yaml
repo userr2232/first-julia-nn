@@ -11,22 +11,23 @@ datasets:
 
 training:
   device: cuda
-  epochs: 15
+  epochs: 30
   logger: "trainer"
+  patience: 3
 
 years:
   start: 2002
   end: 2021
 
 hpo:
-  ntrials: 10
+  ntrials: 2000
   logger: "optuna"
   min_lr: 1e-6
-  max_lr: 1e-1
+  max_lr: 1e-2
   min_nlayers: 2
-  max_nlayers: 20
+  max_nlayers: 10
   min_nunits: 4
-  max_nunits: 128
+  max_nunits: 64
   min_dropout: 0.05
   max_dropout: 0.5
 

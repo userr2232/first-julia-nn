@@ -1,4 +1,3 @@
-import base64
 import pyarrow.parquet as pq
 import numpy as np
 import pyarrow as pa
@@ -14,7 +13,7 @@ arr = df.values.reshape(720, 120).T
 fig = plt.figure(figsize=(60, 10))
 
 ax1 = fig.add_subplot(121)
-ax1.set_title('colorMap')
+ax1.set_title('RTI')
 plt.imshow(arr)
 ax1.set_aspect('equal')
 
@@ -23,7 +22,7 @@ ax1.set_aspect('equal')
 arr2 = np.nansum(np.nansum(arr.reshape(30, 4, 48, 15), 1), 2) != 0
 
 ax2 = fig.add_subplot(122)
-ax2.set_title('colorMap')
+ax2.set_title('binarizado')
 plt.imshow(arr2)
 ax2.set_aspect(1/6)
 

@@ -21,10 +21,10 @@ from src.dataset import get_dataloaders
 def run_training(cfg: DictConfig, fold: Tuple[pa.Table, pa.Table], params: Optional[Dict], trial: Optional[Trial] = None, save_model: bool = False) -> ArrayLike:
     epochs, device, logger_name = itemgetter("epochs", "device", "logger")(cfg.training)
     model = Model(nfeatures=8, ntargets=1, cfg=cfg, params=params, trial=trial)
-    optimizer = optim.Adam(model.parameters(), lr=params['lr'])
+    optimizer = optim.Adam(model.parameters(), lr=params['initial_lr'])
     engine = Engine(model, optimizer, device=device)
     best_loss = np.inf
-    early_stopping_iter = 10
+    early_stopping_iter = cfg.training.patience
     early_stopping_counter = 0
     train_table, valid_table = fold
     train_loader, valid_loader = get_dataloaders(train_table, valid_table)
@@ -34,6 +34,7 @@ def run_training(cfg: DictConfig, fold: Tuple[pa.Table, pa.Table], params: Optio
         valid_loss = engine.evaluate(valid_loader)
         logger.info(f"Epoch: {epoch}, Training Loss: {train_loss}, Validation Loss: {valid_loss}")
         if valid_loss < best_loss:
+            early_stopping_counter = 0
             best_loss = valid_loss
             if save_model:
                 torch.save(model.state_dict(), f"model.pth")
@@ -48,7 +49,7 @@ def run_training(cfg: DictConfig, fold: Tuple[pa.Table, pa.Table], params: Optio
 def objective(trial: optuna.trial.Trial, cfg: DictConfig) -> ArrayLike:
     min_lr, max_lr = itemgetter('min_lr', 'max_lr')(cfg.hpo)
     params = {
-        "lr": trial.suggest_loguniform("lr", min_lr, max_lr)
+        "initial_lr": trial.suggest_loguniform("initial_lr", min_lr, max_lr)
     }
     all_losses = []
     for fold in fold_loader(cfg=cfg):
@@ -73,4 +74,6 @@ def run_study(cfg: DictConfig) -> None:
         scr = run_training(cfg=cfg, fold=fold, params=best_trial.params, save_model=True)
         scores.append(scr)
     logger.info(f"Score:{np.mean(scores)}")
+    fig = optuna.visualization.plot_parallel_coordinate(study, params=["activation", "nlayers", "initial_lr"], target_name="BCE Loss")
+    fig.write_html("HPO.html")
     
