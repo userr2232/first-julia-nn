@@ -8,9 +8,9 @@
 module load cuda
 if [ "$1" = -drop ]; then 
     echo Dropping database
-    mysql < db/drop.sql
+    mysql -u userr2232 < db/drop.sql
 fi
-mysql < db/create.sql
+mysql -u userr2232 < db/create.sql
 for i in {1..64}
 do
     srun python main.py root=$(pwd) action=run_study &

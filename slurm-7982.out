@@ -1,0 +1,34 @@
+Dropping database
+/var/spool/slurmd/job07982/slurm_script: line 4: mysql: command not found
+/var/spool/slurmd/job07982/slurm_script: line 6: mysql: command not found
+Error executing job with overrides: ['root=/home/reynaldo.rojas/deeplearning/first-julia-nn', 'action=run_study', 'training.device=cpu', 'hpo.ntrials=1', 'hpo.max_nlayers=5', 'hpo.max_nunits=20', 'training.epochs=10']
+Traceback (most recent call last):
+  File "/home/reynaldo.rojas/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/storages/_rdb/storage.py", line 175, in __init__
+    self.engine = create_engine(self.url, **self.engine_kwargs)
+  File "<string>", line 2, in create_engine
+  File "/home/reynaldo.rojas/miniconda3/envs/deeplearning/lib/python3.9/site-packages/sqlalchemy/util/deprecations.py", line 309, in warned
+    return fn(*args, **kwargs)
+  File "/home/reynaldo.rojas/miniconda3/envs/deeplearning/lib/python3.9/site-packages/sqlalchemy/engine/create.py", line 560, in create_engine
+    dbapi = dialect_cls.dbapi(**dbapi_args)
+  File "/home/reynaldo.rojas/miniconda3/envs/deeplearning/lib/python3.9/site-packages/sqlalchemy/dialects/mysql/mariadbconnector.py", line 106, in dbapi
+    return __import__("mariadb")
+  File "/home/reynaldo.rojas/miniconda3/envs/deeplearning/lib/python3.9/site-packages/mariadb/__init__.py", line 10, in <module>
+    from ._mariadb import (
+ImportError: libmariadb.so.3: cannot open shared object file: No such file or directory
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/reynaldo.rojas/deeplearning/first-julia-nn/main.py", line 15, in main
+    run_study(cfg)
+  File "/home/reynaldo.rojas/deeplearning/first-julia-nn/src/train.py", line 72, in run_study
+    study = optuna.create_study(study_name=cfg.study_name, storage=cfg.hpo.rdb, direction='maximize', load_if_exists=True)
+  File "/home/reynaldo.rojas/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/study.py", line 1136, in create_study
+    storage = storages.get_storage(storage)
+  File "/home/reynaldo.rojas/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/storages/__init__.py", line 31, in get_storage
+    return _CachedStorage(RDBStorage(storage))
+  File "/home/reynaldo.rojas/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/storages/_rdb/storage.py", line 177, in __init__
+    raise ImportError(
+ImportError: Failed to import DB access module for the specified storage URL. Please install appropriate one.
+
+Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.
