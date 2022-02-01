@@ -1,7 +1,7 @@
 import torch
 from torch.utils.data import Dataset, DataLoader
 from pathlib import Path
-from typing import Union
+from typing import Union, List
 import pyarrow as pa
 import numpy as np
 
@@ -28,7 +28,9 @@ class JuliaDataset(Dataset):
         self.df['HC'] = np.cos(2*np.pi*H/24)
         self.df.drop(['LT_x', 'LT-1h', 'LT_y', 'hmF2', 'year'], axis=1, inplace=True)
         self.df['ESF_binary'] = (self.df['accum_ESF'] > 0)*1
-        print(self.df)
 
-def get_dataloaders(*args: pa.Table, **kwargs):
+
+def get_dataloaders(*args: pa.Table, **kwargs) -> Union[List[DataLoader], DataLoader]:
+    if len(args) == 1:
+        return DataLoader(dataset=JuliaDataset(args[0]), **kwargs)
     return [ DataLoader(dataset=JuliaDataset(table), **kwargs) for table in args ]

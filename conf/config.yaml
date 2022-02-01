@@ -1,5 +1,7 @@
 root: ???
 
+study_name: first_julia_nn
+
 datasets:
   data: ${root}/data
   processed: ${root}/processed_data
@@ -12,16 +14,16 @@ datasets:
 training:
   device: cuda
   epochs: 30
-  logger: "trainer"
-  patience: 3
+  logger: trainer
+  patience: 5
 
 years:
   start: 2002
   end: 2021
 
 hpo:
-  ntrials: 2000
-  logger: "optuna"
+  ntrials: 1000
+  logger: study
   min_lr: 1e-6
   max_lr: 1e-2
   min_nlayers: 2
@@ -30,5 +32,18 @@ hpo:
   max_nunits: 64
   min_dropout: 0.05
   max_dropout: 0.5
+  rdb: mariadb+mariadbconnector://localhost/${study_name}
+  plot: HPO.html
+
+model:
+  path: ${root}/models/${study_name}.pth
+  nfeatures: 8
+  ntargets: 1
+
+final:
+  split:
+    train: 70
+    valid: 20
+  logger: final
 
 action: create_partition

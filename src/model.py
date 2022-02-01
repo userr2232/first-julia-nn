@@ -26,8 +26,9 @@ class Activation(Enum):
         return ['ELU', 'LeakyReLU', 'ReLU', 'RReLU', 'SELU', 'CELU']
 
 class Model(nn.Module):
-    def __init__(self, nfeatures: int, ntargets: int, cfg: DictConfig, params: Optional[Dict], trial: Optional[optuna.trial.Trial] = None) -> None:
+    def __init__(self, cfg: DictConfig, params: Optional[Dict], trial: Optional[optuna.trial.Trial] = None) -> None:
         super().__init__()
+        nfeatures, ntargets = itemgetter("nfeatures", "ntargets")(cfg.model)
         self.trial = trial
         self.params = params
         self.cfg = cfg
@@ -52,7 +53,6 @@ class Model(nn.Module):
         min_nlayers, max_nlayers = itemgetter('min_nlayers', 'max_nlayers')(self.cfg.hpo)
         min_nunits, max_nunits = itemgetter('min_nunits', 'max_nunits')(self.cfg.hpo)
         min_dropout, max_dropout = itemgetter('min_dropout', 'max_dropout')(self.cfg.hpo)
-        print("param_name", param_name)
         def trial_suggest(param_name: str) -> Any:
             if param_name == "activation":
                 return Activation.builder(self.trial.suggest_categorical(param_name, Activation.dir()))

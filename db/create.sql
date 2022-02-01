@@ -1,0 +1,1 @@
+CREATE DATABASE IF NOT EXISTS first_julia_nn;

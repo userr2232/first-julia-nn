@@ -1,0 +1,1 @@
+DROP DATABASE IF EXISTS first_julia_nn;
