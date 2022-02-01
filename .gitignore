@@ -173,3 +173,5 @@ a.out
 .DS_Store
 
 etc/
+
+**/*.db

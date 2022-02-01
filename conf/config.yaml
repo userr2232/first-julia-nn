@@ -32,7 +32,7 @@ hpo:
   max_nunits: 64
   min_dropout: 0.05
   max_dropout: 0.5
-  rdb: mariadb+mariadbconnector://userr2232@localhost/${study_name}
+  rdb: sqlite:///${root}/db/${study_name}.db
   plot: HPO.html
 
 model:
