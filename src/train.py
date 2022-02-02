@@ -38,7 +38,7 @@ def run_training(cfg: DictConfig, fold: Tuple[pa.Table, pa.Table], params: Optio
         TP, TN, FP, FN = itemgetter('TP', 'TN', 'FP', 'FN')(conf_matrix)
         accuracy = (TP + TN) / (TP + FP + TN + FN)
         logger.info(f"Epoch: {epoch}, Training Loss: {train_loss}, Validation Loss: {valid_loss} Accuracy: {accuracy}")
-        if valid_loss < best_loss:
+        if round(valid_loss, 3) < round(best_loss, 3):
             early_stopping_counter = 0
             best_loss = valid_loss
             best_matrix = conf_matrix.copy()
