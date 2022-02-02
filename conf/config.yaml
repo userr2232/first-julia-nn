@@ -32,7 +32,7 @@ hpo:
   max_nunits: 64
   min_dropout: 0.05
   max_dropout: 0.5
-  rdb: sqlite:///${root}/db/${study_name}.db
+  rdb: mysql+pymysql://userr2232@127.0.0.1/first_julia_nn
   plot: HPO.html
 
 model:
