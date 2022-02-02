@@ -175,3 +175,5 @@ a.out
 etc/
 
 **/*.db
+
+credentials/
