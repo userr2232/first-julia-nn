@@ -1,7 +1,13 @@
 #!/bin/bash
 if [ "$1" = -drop ]; then 
     echo Dropping database
-    # mysql < db/drop.sql
-    rm $(pwd)/db/first_julia_nn.db
+    mysql -u userr2232 -h 127.0.0.1 < db/drop.sql
 fi
-python main.py root=$(pwd) action=run_study training.device=cpu hpo.ntrials=1 hpo.max_nlayers=5 hpo.max_nunits=20 training.epochs=10
+if [ -f $(pwd)/.env ]; then
+    echo Exporting env vars
+    export $(cat .env | xargs)
+fi
+./credentials/cloud_sql_proxy -instances=deep-learning-308822:us-central1:hpo=tcp:3306 &
+sleep 2
+mysql -u userr2232 -h 127.0.0.1 < db/create.sql
+python main.py root=$(pwd) action=run_study training.device=cpu hpo.ntrials=10
