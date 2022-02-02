@@ -1,2 +1,2 @@
 #!/bin/bash
-python main.py root=$(pwd) action=run_study
+python main.py root=$(pwd)/first-julia-nn action=run_study
