@@ -10,6 +10,8 @@ datasets:
   test: ${.selected}/test
   julia: ${.selected}/Data_Julia
   sao: ${.selected}/Completed_SAO_V3.hdf5
+  confusion: ${.processed}/nn_evaluation_confusion.csv
+  nn_inputs: ${.processed}/nn_evaluation_inputs.csv
 
 geomagneticindices:
   Kp_ap_Ap_SN_F107:

@@ -5,6 +5,7 @@ from typing import Union
 from src.train import run_study, view_study, train_w_best_params, test
 from src.partitions import create_partitions
 from src.geomagindices import get_indices
+from src.dash_app import dash_app
 import pandas as pd
 
 
