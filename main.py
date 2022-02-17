@@ -6,6 +6,7 @@ from src.train import run_study, view_study, train_w_best_params, test
 from src.partitions import create_partitions
 from src.geomagindices import get_indices
 from src.dash_app import dash_app
+from src.inference import daily_prediction
 import pandas as pd
 
 
@@ -30,6 +31,8 @@ def main(cfg: DictConfig) -> None:
         print(ap)
         print("f10.7")
         print(f10_7)
+    elif action == "daily_prediction":
+        daily_prediction(cfg)
     else:
         raise ValueError("Action not implemented.")
 

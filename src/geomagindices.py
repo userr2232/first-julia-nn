@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 import io
 from typing import Tuple
+import datetime
 
 
 def download_hF(cfg: DictConfig, datetimes: pd.DatetimeIndex) -> pd.DataFrame:
@@ -29,8 +30,10 @@ def download_hF(cfg: DictConfig, datetimes: pd.DatetimeIndex) -> pd.DataFrame:
         year, dayofyear = date.year, date.dayofyear
         dayofyear = str(dayofyear).zfill(3)
         extra_path = Path(itemgetter(year)(cfg.geomagneticindices.hF.year_mapping)) / dayofyear / "scaled"
-        print("PATH:", str(ftp_path / extra_path))
-        ftp.cwd(str(ftp_path / extra_path))
+        try:
+            ftp.cwd(str(ftp_path / extra_path))
+        except:
+            continue
         for obs_time in obs_times:
             _date = date + pd.Timedelta(obs_time[:2]+'hours') + pd.Timedelta(obs_time[-2:]+'min')
             download_file = io.BytesIO()
@@ -45,7 +48,6 @@ def download_hF(cfg: DictConfig, datetimes: pd.DatetimeIndex) -> pd.DataFrame:
                     tmp = line[8 * 10: 8 * 11]
                     if tmp != "9999.000":
                         hF = float(tmp)
-                    print("hF", hF)
                     break
                 if line[:2] == "FF":
                     next = True
@@ -60,17 +62,27 @@ def download_ap_f10_7(cfg: DictConfig, datetimes: pd.DatetimeIndex) -> pd.DataFr
     ftp = FTP(ftp_host)
     ftp.login()
     ftp.cwd(ftp_path)
-    start_year, end_year = datetimes[0].year, datetimes[-1].year
     df = pd.DataFrame()
-    for year in range(start_year, end_year+1):
+    colnames = ['YYYY', 'MM', 'DD', 'days', 'days_m', 'Bsr', 'dB', 'Kp1', 'Kp2', 'Kp3', 'Kp4', 'Kp5', 'Kp6', 'Kp7', 'Kp8', 'ap1', 'ap2', 'ap3', 'ap4', 'ap5', 'ap6', 'ap7', 'ap8', 'Ap', 'SN', 'F10.7obs', 'F10.7adj', 'D']
+    real_time = (datetime.datetime.now() - datetimes[0]).days <= 2
+    start_year, end_year = datetimes[0].year, datetimes[-1].year
+    for year in range(start_year-1, end_year+1):
         filename = f'Kp_ap_Ap_SN_F107_{year}.txt'
         download_file = io.BytesIO()
         ftp.retrbinary("RETR {}".format(filename), download_file.write)
         download_file.seek(0)
-        colnames = ['YYYY', 'MM', 'DD', 'days', 'days_m', 'Bsr', 'dB', 'Kp1', 'Kp2', 'Kp3', 'Kp4', 'Kp5', 'Kp6', 'Kp7', 'Kp8', 'ap1', 'ap2', 'ap3', 'ap4', 'ap5', 'ap6', 'ap7', 'ap8', 'Ap', 'SN', 'F10.7obs', 'F10.7adj', 'D']
         df = pd.concat([df, pd.read_table(download_file, comment='#', delim_whitespace=True, header=None, names=colnames)], ignore_index=True)
+    
+    filename = 'Kp_ap_Ap_SN_F107_nowcast.txt'
+    download_file = io.BytesIO()
+    ftp.retrbinary("RETR {}".format(filename), download_file.write)
+    download_file.seek(0)
+    df = pd.concat([df, pd.read_table(download_file, comment='#', delim_whitespace=True, header=None, names=colnames)], ignore_index=True)
+
     df.rename(columns={'YYYY': 'YEAR', 'MM': 'MONTH', 'DD': 'DAY', 'F10.7obs': 'f10_7'}, inplace=True)
     df['date'] = pd.to_datetime(df.loc[:, ('YEAR', 'MONTH', 'DAY')])
+    df = df.sort_values('date').drop_duplicates('date',keep='last')
+
     df.drop(['YEAR', 'MONTH', 'DAY'], axis=1, inplace=True)
     aps = [f'ap{i}' for i in range(1, 9)]
     interm_df = df.drop(df.columns.difference(aps + ['date', 'f10_7']), axis=1).copy()
@@ -87,6 +99,10 @@ def download_ap_f10_7(cfg: DictConfig, datetimes: pd.DatetimeIndex) -> pd.DataFr
     return ap_df, f10_7_df
 
 
-def get_indices(cfg: DictConfig, datetimes: pd.DatetimeIndex) -> Tuple[pd.DataFrame]:
-    return download_hF(cfg, datetimes), download_ap_f10_7(cfg, datetimes)
-
+def get_indices(cfg: DictConfig, date_range: pd.DatetimeIndex) -> Tuple[pd.DataFrame]:
+    ap, f10_7 = download_ap_f10_7(cfg, date_range)
+    ap.replace(-1, np.nan, inplace=True)
+    f10_7.replace(-1, np.nan, inplace=True)
+    ap = ap.loc[((ap.date >= date_range[0]) & (ap.date <= date_range[-1]))].copy()
+    f10_7 = f10_7.loc[((f10_7.date >= (date_range[0] - pd.Timedelta("90D"))) & (f10_7.date <= date_range[-1]))].copy()
+    return download_hF(cfg, date_range), (ap, f10_7)

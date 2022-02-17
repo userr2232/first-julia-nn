@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Any, Dict, Optional
 from omegaconf.dictconfig import DictConfig
 from operator import itemgetter
+from pathlib import Path
 import optuna
 import torch
 import torch.nn as nn
@@ -68,3 +69,12 @@ class Model(nn.Module):
             return self.params[param_name] if param_name != "activation" else Activation.builder(self.params[param_name])
         except KeyError:
             return trial_suggest(param_name)
+
+
+def save_jit_model(cfg: DictConfig, model: nn.Module) -> None:
+    path = Path(cfg.model.path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    cpu_model = model.cpu()
+    sample_input_cpu = torch.rand(cfg.model.nfeatures)
+    traced_cpu = torch.jit.trace(cpu_model, sample_input_cpu)
+    torch.jit.save(traced_cpu, Path(cfg.model.path) / cfg.model.nn_checkpoint)

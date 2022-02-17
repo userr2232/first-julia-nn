@@ -112,13 +112,15 @@ def display_years(DFs: List[pd.DataFrame], years: List[int]) -> go.Figure:
 
 def read_calendar_dataset(cfg: DictConfig) -> Tuple[List[ArrayLike], List[int]]:
     def prediction_mapper(row):
-        if np.isnan(row.TP): return np.nan
         if row.TP: return 4
         if row.FP: return 3
         if row.TN: return 2
         if row.FN: return 1
+        if row.prediction: return 5
+        if row.prediction == 0: return 6
+        return np.nan
 
-    confusion_path, nn_inputs_path = Path(cfg.datasets.confusion), Path(cfg.datasets.nn_inputs)
+    confusion_path, nn_inputs_path, predictions = Path(cfg.datasets.confusion), Path(cfg.datasets.nn_inputs), Path(cfg.datasets.predictions)
     confusion_df = pd.read_csv(confusion_path, parse_dates=['date'], infer_datetime_format=True)
     inputs_df = pd.read_csv(nn_inputs_path)
     df = pd.merge(confusion_df, inputs_df, on='day_idx')

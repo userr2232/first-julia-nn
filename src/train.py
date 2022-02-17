@@ -14,7 +14,7 @@ from functools import partial
 from pathlib import Path
 
 from src.folds import fold_loader, load_everything
-from src.model import Model
+from src.model import Model, save_jit_model
 from src.engine import Engine
 from src.dataset import get_dataloaders
 
@@ -43,9 +43,7 @@ def run_training(cfg: DictConfig, fold: Tuple[pa.Table, pa.Table], params: Optio
             best_loss = valid_loss
             best_matrix = conf_matrix.copy()
             if save_model:
-                path = Path(cfg.model.path)
-                path.parent.mkdir(parents=True, exist_ok=True)
-                torch.save(model.state_dict(), path)
+                save_jit_model(cfg, model)
         else:
             early_stopping_counter += 1
         if early_stopping_counter > early_stopping_iter:

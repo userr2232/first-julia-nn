@@ -177,3 +177,4 @@ etc/
 **/*.db
 
 credentials/
+models/
