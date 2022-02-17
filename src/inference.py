@@ -61,19 +61,19 @@ def predict(cfg: DictConfig, inputs: torch.Tensor) -> torch.Tensor:
 def save_prediction(cfg: DictConfig, nn_inputs: torch.Tensor, occurrence: bool, now: datetime.date) -> None:
     predictions_path, nn_inputs_path = itemgetter('predictions', 'nn_inputs')(cfg.datasets)
     df = None
+    day_idx = (now - datetime.date(year=1970, month=1, day=1)).days
     row = []
     try:
         df = pd.read_csv(predictions_path, parse_dates=['date'], infer_datetime_format=True)
     except FileNotFoundError:
-        schema = [('date', 'datetime64[ns]'), ('prediction', 'int')]
+        schema = [('day_idx', 'int'), ('prediction', 'int')]
         df = pd.DataFrame(np.empty(0, dtype=schema))
     l0 = len(df)
-    row.append([now, int(occurrence)])
-    df = pd.concat([df, pd.DataFrame(row, columns=['date', 'prediction'])], ignore_index=True)
-    df = df.sort_values('date').drop_duplicates('date', keep='last')
+    row.append([day_idx, int(occurrence)])
+    df = pd.concat([df, pd.DataFrame(row, columns=['day_idx', 'prediction'])], ignore_index=True)
+    df = df.sort_values('day_idx').drop_duplicates('day_idx', keep='last')
     if len(df) == l0 + 1:
         row = []
-        day_idx = (now - datetime.date(year=1970, month=1, day=1)).days
         inputs_df = pd.read_csv(nn_inputs_path)
         row.append([day_idx] + nn_inputs.tolist())
         inputs_df = pd.concat([inputs_df, 

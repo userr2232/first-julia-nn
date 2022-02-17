@@ -17,17 +17,20 @@ from operator import itemgetter
 def display_year(df: pd.DataFrame, year: int, fig: go.Figure, row: int) -> None:
     start = datetime.date(year, 1, 1).weekday()
     Z = np.zeros(7 * 53) * np.nan
-    Z[start:start+len(df)] = df.prediction
+    Z[start:start+len(df)] = df.val
     Z = Z.reshape(53, 7).T
 
     colorscale = [(0, 'white'), (1e-12, 'white'),
-                    (1e-12, '#ff00ff'), (0.25, '#ff00ff'), 
-                    (0.25, "#ff55aa"), (0.5, '#ff55aa'),
-                    (0.5, '#ffaa55'), (0.75, '#ffaa55'),
-                    (0.75, '#ffff00'), (1, '#ffff00')]
+                    (1e-12, '#ff00ff'), (0.15, '#ff00ff'), 
+                    (0.15, "#ff55aa"), (0.3, '#ff55aa'),
+                    (0.3, '#ffaa55'), (0.45, '#ffaa55'),
+                    (0.45, '#ffff00'), (0.6, '#ffff00'),
+                    (0.6, '#03dddc'), (0.75, '#03dddc'),
+                    (0.75, '#000000'), (1, '#000000')]
 
     def formatter(row):
-        return ('' if np.isnan(row.prediction) else '<br>'.join([
+        return ('' if np.isnan(row.val) else '<br>'.join([
+            str(row.date.date()),
             f"h\'F: {row.V_hF:.2f}",
             f"h\'F (prev. 30 min): {row.V_hF:.2f}",
             f"F10.7: {row['F10.7']:.2f}",
@@ -112,19 +115,23 @@ def display_years(DFs: List[pd.DataFrame], years: List[int]) -> go.Figure:
 
 def read_calendar_dataset(cfg: DictConfig) -> Tuple[List[ArrayLike], List[int]]:
     def prediction_mapper(row):
-        if row.TP: return 4
-        if row.FP: return 3
-        if row.TN: return 2
-        if row.FN: return 1
-        if row.prediction: return 5
-        if row.prediction == 0: return 6
-        return np.nan
+        if np.isnan(row.TP) and np.isnan(row.prediction): return np.nan
+        if not np.isnan(row.TP):
+            if row.TP: return 4
+            if row.FP: return 3
+            if row.TN: return 2
+            if row.FN: return 1
+        else:
+            if row.prediction: return 5
+            else: return 6
 
-    confusion_path, nn_inputs_path, predictions = Path(cfg.datasets.confusion), Path(cfg.datasets.nn_inputs), Path(cfg.datasets.predictions)
+    confusion_path, nn_inputs_path, predictions_path = Path(cfg.datasets.confusion), Path(cfg.datasets.nn_inputs), Path(cfg.datasets.predictions)
     confusion_df = pd.read_csv(confusion_path, parse_dates=['date'], infer_datetime_format=True)
     inputs_df = pd.read_csv(nn_inputs_path)
-    df = pd.merge(confusion_df, inputs_df, on='day_idx')
-
+    predictions_df = pd.read_csv(predictions_path)
+    df = pd.merge(inputs_df, predictions_df, on='day_idx', how='left')
+    df = pd.merge(df, confusion_df, on='day_idx', how='left')
+    df.date = pd.Timestamp(year=1970, month=1, day=1) + pd.to_timedelta(df.day_idx, unit='days')
     years = np.unique(df.date.dt.year).tolist()
     DFs = []
     for year in years:
@@ -134,7 +141,7 @@ def read_calendar_dataset(cfg: DictConfig) -> Tuple[List[ArrayLike], List[int]]:
         dt_range_df = pd.DataFrame(arr)
         dt_range_df['date'] = dt_range.copy()
         dt_df = pd.merge(dt_range_df, df, on='date', how='left')
-        dt_df['prediction'] = dt_df.apply(prediction_mapper, axis=1) / 5
+        dt_df['val'] = dt_df.apply(prediction_mapper, axis=1) / 7
         DFs.append(dt_df.drop(0, axis=1))
     return DFs[::-1], years[::-1]
 
