@@ -19,7 +19,7 @@ from src.engine import Engine
 from src.dataset import get_dataloaders
 
 
-def run_training(cfg: DictConfig, fold: Tuple[pa.Table, pa.Table], params: Optional[Dict], trial: Optional[Trial] = None, save_model: bool = False) -> ArrayLike:
+def run_training(cfg: DictConfig, fold: Tuple[pa.Table, pa.Table], params: Optional[Dict], trial: Optional[Trial] = None, save_model: bool = False, prune: bool = True) -> ArrayLike:
     epochs, device, logger_name = itemgetter("epochs", "device", "logger")(cfg.training)
     model = Model(cfg=cfg, params=params, trial=trial)
     optimizer = optim.Adam(model.parameters(), lr=params['initial_lr'])
@@ -46,7 +46,7 @@ def run_training(cfg: DictConfig, fold: Tuple[pa.Table, pa.Table], params: Optio
                 save_jit_model(cfg, model)
         else:
             early_stopping_counter += 1
-        if early_stopping_counter > early_stopping_iter:
+        if prune and early_stopping_counter > early_stopping_iter:
             break
     return best_loss, best_matrix
 
@@ -96,7 +96,7 @@ def train_w_best_params(cfg: DictConfig) -> None:
     train_len, valid_len = num_rows * train_pct // 100, num_rows * valid_pct // 100
     tables = table.slice(0, train_len), table.slice(train_len, valid_len)
 
-    valid_loss, conf_matrix = run_training(cfg=cfg, fold=tables, params=best_trial.params, save_model=True)
+    valid_loss, conf_matrix = run_training(cfg=cfg, fold=tables, params=best_trial.params, save_model=True, prune=False)
     logger = logging.getLogger(cfg.final.logger)
     logger.info(f"Best trial values: {best_trial.values}")
     logger.info(f"Best trial params: {best_trial.params}")

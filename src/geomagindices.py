@@ -38,7 +38,10 @@ def download_hF(cfg: DictConfig, datetimes: pd.DatetimeIndex) -> pd.DataFrame:
             _date = date + pd.Timedelta(obs_time[:2]+'hours') + pd.Timedelta(obs_time[-2:]+'min')
             download_file = io.BytesIO()
             filename = f"{station}_{year}{dayofyear}{obs_time}00.SAO"
-            ftp.retrbinary(f"RETR {filename}", download_file.write)
+            try:
+                ftp.retrbinary(f"RETR {filename}", download_file.write)
+            except:
+                continue
             download_file.seek(0)
             next = False
             hF = None
@@ -99,10 +102,17 @@ def download_ap_f10_7(cfg: DictConfig, datetimes: pd.DatetimeIndex) -> pd.DataFr
     return ap_df, f10_7_df
 
 
-def get_indices(cfg: DictConfig, date_range: pd.DatetimeIndex) -> Tuple[pd.DataFrame]:
+def get_indices(cfg: DictConfig, date_range: pd.DatetimeIndex) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     ap, f10_7 = download_ap_f10_7(cfg, date_range)
     ap.replace(-1, np.nan, inplace=True)
     f10_7.replace(-1, np.nan, inplace=True)
-    ap = ap.loc[((ap.date >= date_range[0]) & (ap.date <= date_range[-1]))].copy()
-    f10_7 = f10_7.loc[((f10_7.date >= (date_range[0] - pd.Timedelta("90D"))) & (f10_7.date <= date_range[-1]))].copy()
-    return download_hF(cfg, date_range), (ap, f10_7)
+    hF = download_hF(cfg, date_range)
+    ap = ap.loc[((ap.date >= date_range[0]) & (ap.date <= date_range[-1]))].copy().reset_index(drop=True)
+    f10_7 = f10_7.loc[((f10_7.date >= (date_range[0] - pd.Timedelta("90D"))) & (f10_7.date <= date_range[-1]))].copy().reset_index(drop=True)
+    hF = hF.loc[((hF.date >= date_range[1] - datetime.timedelta(minutes=30)) & (hF.date <= date_range[-1]))].copy().reset_index(drop=True)
+
+    delta = pd.Timedelta(f"{cfg.geomagneticindices.UTC_offset}h")
+    ap.date = ap.date + delta
+    f10_7.date = f10_7.date + delta
+    hF.date = hF.date + delta
+    return hF, ap, f10_7

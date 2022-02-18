@@ -4,9 +4,7 @@ from pathlib import Path
 from typing import Union
 from src.train import run_study, view_study, train_w_best_params, test
 from src.partitions import create_partitions
-from src.geomagindices import get_indices
-from src.dash_app import dash_app
-from src.inference import daily_prediction
+from src.inference import daily_prediction, range_prediction
 import pandas as pd
 
 
@@ -23,16 +21,10 @@ def main(cfg: DictConfig) -> None:
         train_w_best_params(cfg)
     elif action == "test":
         test(cfg)
-    elif action == "get_indices":
-        hF, (ap, f10_7) = get_indices(cfg, pd.date_range('2020-01-01', '2020-01-02', freq='3H'))
-        print("HF")
-        print(hF)
-        print("AP")
-        print(ap)
-        print("f10.7")
-        print(f10_7)
     elif action == "daily_prediction":
         daily_prediction(cfg)
+    elif action == "range_prediction":
+        range_prediction(cfg)
     else:
         raise ValueError("Action not implemented.")
 

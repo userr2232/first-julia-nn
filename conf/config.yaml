@@ -71,3 +71,7 @@ final:
   logger: final
 
 action: create_partition
+
+inference:
+  start: ???
+  end: ???

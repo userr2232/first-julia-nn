@@ -11,6 +11,7 @@ from pathlib import Path
 import numpy as np
 from plotly.subplots import make_subplots
 import dash
+from dash.dependencies import Input, Output
 from operator import itemgetter
 
 
@@ -32,7 +33,7 @@ def display_year(df: pd.DataFrame, year: int, fig: go.Figure, row: int) -> None:
         return ('' if np.isnan(row.val) else '<br>'.join([
             str(row.date.date()),
             f"h\'F: {row.V_hF:.2f}",
-            f"h\'F (prev. 30 min): {row.V_hF:.2f}",
+            f"h\'F (prev. 30 min): {row.V_hF_prev:.2f}",
             f"F10.7: {row['F10.7']:.2f}",
             f"F10.7 (avg. 90 days): {row['F10.7 (90d)']:.2f}",
             f"ap: {row.AP:.0f}",
@@ -113,7 +114,7 @@ def display_years(DFs: List[pd.DataFrame], years: List[int]) -> go.Figure:
     return fig
 
 
-def read_calendar_dataset(cfg: DictConfig) -> Tuple[List[ArrayLike], List[int]]:
+def read_calendar_dataset() -> Tuple[List[ArrayLike], List[int]]:
     def prediction_mapper(row):
         if np.isnan(row.TP) and np.isnan(row.prediction): return np.nan
         if not np.isnan(row.TP):
@@ -146,17 +147,26 @@ def read_calendar_dataset(cfg: DictConfig) -> Tuple[List[ArrayLike], List[int]]:
     return DFs[::-1], years[::-1]
 
 
-def dash_app(cfg: DictConfig):
-    DFs, years = read_calendar_dataset(cfg)
-    fig = display_years(DFs, years)
+def dash_app():
     app = dash.Dash()
     app.layout = html.Div([
-        dcc.Graph(id='confusion-calendar', figure=fig, config={'displayModeBar': False})
+        dcc.Graph(id='confusion-calendar', config={'displayModeBar': False}),
+        dcc.Interval(
+            id='interval-component',
+            interval=1*1000,
+            n_intervals=0
+        )
     ])
     return app
 
 if __name__ == "__main__":
-    cfg = OmegaConf.load('conf/config.yaml')
-    cfg.root = str(Path.cwd())
-    app = dash_app(cfg)
+    _cfg = OmegaConf.load('conf/config.yaml')
+    _cfg.root = str(Path.cwd())
+    cfg = _cfg
+    app = dash_app()
+    @app.callback(Output('confusion-calendar', 'figure'), Input('interval-component', 'n_intervals'))
+    def update_calendar(n):
+        DFs, years = read_calendar_dataset()
+        fig = display_years(DFs, years)
+        return fig
     app.run_server(debug=True)

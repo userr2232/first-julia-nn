@@ -9,6 +9,7 @@ import logging
 import joblib
 import numpy as np
 from operator import itemgetter
+import time
 
 
 INFERENCE_LOGGER_NAME = "INFERENCE"
@@ -22,28 +23,21 @@ def process_geoparam(cfg: DictConfig, now: datetime.datetime, hF: pd.DataFrame, 
     if len(hF) == 0 or len(ap) == 0 or len(f10_7) == 0:
         warning()
         return None
-    delta = pd.Timedelta(f"{cfg.geomagneticindices.UTC_offset}h")
-    hF.date = hF.date + delta
-    ap.date = ap.date + delta
-    f10_7.date = f10_7.date + delta
 
     _doy = 2 * np.pi * DOY / 365
     DNS, DNC = np.sin(_doy), np.cos(_doy)
     
-    f10_7 = f10_7.drop(f10_7.loc[((f10_7.date < now-datetime.timedelta(days=90)) | (f10_7.date > now))].index)
     current_f10_7 = f10_7.f10_7.iloc[-1]
     if (now - f10_7.date.iloc[-1]).components.minutes > 30:
         warning()
         return None
     f10_7_90d = f10_7.f10_7.mean()
 
-    ap = ap.drop(ap.loc[((ap.date < now-datetime.timedelta(hours=24)) | (ap.date > now))].index)
     current_ap = ap.ap.iloc[-1]
     ap_24h = ap.ap.mean()
 
-    hF = hF.drop(hF.loc[((hF.date < now-datetime.timedelta(minutes=30)) | (hF.date > now))].index)
-    current_hF = hF.hF.iloc[-1]
-    prev_hF = hF.hF.iloc[-1] if (now - hF.date.iloc[-2]).components.minutes > 45 else hF.hF.iloc[-2]
+    current_hF = hF.hF.iloc[-1]    
+    prev_hF = hF.hF.iloc[0]
 
     scaler_path = Path(cfg.model.path) / cfg.model.scaler_checkpoint
     scaler = joblib.load(scaler_path)
@@ -64,12 +58,12 @@ def save_prediction(cfg: DictConfig, nn_inputs: torch.Tensor, occurrence: bool, 
     day_idx = (now - datetime.date(year=1970, month=1, day=1)).days
     row = []
     try:
-        df = pd.read_csv(predictions_path, parse_dates=['date'], infer_datetime_format=True)
+        df = pd.read_csv(predictions_path)
     except FileNotFoundError:
         schema = [('day_idx', 'int'), ('prediction', 'int')]
         df = pd.DataFrame(np.empty(0, dtype=schema))
     l0 = len(df)
-    row.append([day_idx, int(occurrence)])
+    row.append([day_idx, occurrence])
     df = pd.concat([df, pd.DataFrame(row, columns=['day_idx', 'prediction'])], ignore_index=True)
     df = df.sort_values('day_idx').drop_duplicates('day_idx', keep='last')
     if len(df) == l0 + 1:
@@ -84,16 +78,25 @@ def save_prediction(cfg: DictConfig, nn_inputs: torch.Tensor, occurrence: bool, 
     df.to_csv(predictions_path, index=False)
 
 
-def daily_prediction(cfg: DictConfig) -> None:
+def daily_prediction(cfg: DictConfig, day: Optional[datetime.date] = None) -> None:
     tz = datetime.timezone(datetime.timedelta(hours=cfg.geomagneticindices.UTC_offset))
-    today = datetime.datetime.combine(datetime.date.today(), datetime.time(), tzinfo=tz) + datetime.timedelta(hours=19, minutes=30)
-    today = datetime.datetime.combine(datetime.date(year=2021, month=1, day=1), datetime.time(), tzinfo=tz) + datetime.timedelta(hours=19, minutes=30) - datetime.timedelta(days=1)
+    if day is None:
+        day = datetime.date.today()
+    today = datetime.datetime.combine(day, datetime.time(), tzinfo=tz) + datetime.timedelta(hours=19, minutes=30)
     yesterday = today - datetime.timedelta(days=1)
     today_UTC = today.astimezone(datetime.timezone(datetime.timedelta(0))).replace(tzinfo=None)
     yesterday_UTC = today_UTC - datetime.timedelta(days=1)
-    hF, (ap, f10_7) = get_indices(cfg, pd.date_range(yesterday_UTC, today_UTC, freq="1D"))
+    hF, ap, f10_7 = get_indices(cfg, pd.date_range(yesterday_UTC, today_UTC, freq="1D"))
     nn_inputs = process_geoparam(cfg, now=today.replace(tzinfo=None), hF=hF, ap=ap, f10_7=f10_7, DOY=today.timetuple().tm_yday)
     if nn_inputs is None: return
     nn_output = predict(cfg, inputs=nn_inputs)
     occurrence = torch.sigmoid(nn_output) >= 0.5
+    print("occurrence", occurrence)
     save_prediction(cfg, nn_inputs=nn_inputs.detach().numpy()[:-2], occurrence=occurrence.item(), now=today.date())
+
+
+def range_prediction(cfg: DictConfig) -> None:
+    start, end = map(pd.Timestamp, itemgetter('start', 'end')(cfg.inference))
+    date_range = pd.date_range(start, end, freq='1D')
+    for date in date_range:
+        daily_prediction(cfg, day=date)
