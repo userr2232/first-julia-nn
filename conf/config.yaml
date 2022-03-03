@@ -63,6 +63,8 @@ model:
   scaler_checkpoint: scaler.gz
   nfeatures: 8
   ntargets: 1
+  kwargs:
+    batch_size: 16
   features:
     - V_hF
     - V_hF_prev
