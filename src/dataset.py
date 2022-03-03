@@ -13,7 +13,7 @@ def processing(df: pd.DataFrame) -> pd.DataFrame:
 
     columns = ['V_hF', 'V_hF_prev', 'F10.7', 'F10.7 (90d)', 'AP', 'AP (24h)']
     
-    scaler_path = "models/scaler.gz"
+    scaler_path = "/Users/userr2232/Documents/misc/first-julia-nn/models/scaler.gz"
     scaler = joblib.load(scaler_path)
     new_df[columns] = scaler.transform(new_df.loc[:, columns])
 
@@ -35,7 +35,8 @@ class JuliaDataset(Dataset):
 
     def __getitem__(self, idx: int):
         row = self.df.iloc[idx]
-        return torch.tensor(row, dtype=torch.float32, requires_grad=True), \
+
+        return torch.tensor(row.drop(labels='ESF_binary'), dtype=torch.float32, requires_grad=True), \
                 torch.tensor([row.ESF_binary], dtype=torch.float32, requires_grad=True)
 
 
