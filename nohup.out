@@ -1,0 +1,262 @@
+2022/03/03 12:18:03 Rlimits for file descriptors set to {Current = 8500, Max = 1048576}
+2022/03/03 12:18:07 listen tcp 127.0.0.1:3306: bind: address already in use
+[32m[I 2022-03-03 12:18:54,114][0m A new study created in RDB with name: first_julia_nn[0m
+[32m[I 2022-03-03 12:18:58,350][0m Using an existing study with name 'first_julia_nn' instead of creating a new one.[0m
+[32m[I 2022-03-03 12:18:58,351][0m Using an existing study with name 'first_julia_nn' instead of creating a new one.[0m
+[32m[I 2022-03-03 12:18:58,976][0m Using an existing study with name 'first_julia_nn' instead of creating a new one.[0m
+[33m[W 2022-03-03 12:19:54,730][0m Trial 2 failed because of the following error: RuntimeError('mat1 and mat2 shapes cannot be multiplied (16x9 and 8x18)')[0m
+Traceback (most recent call last):
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 213, in _run_trial
+    value_or_values = func(trial)
+  File "/home/soporte/first-julia-nn/src/train.py", line 62, in objective
+    _, conf_matrix = run_training(cfg=cfg, fold=fold, params=params, trial=trial)
+  File "/home/soporte/first-julia-nn/src/train.py", line 36, in run_training
+    train_loss = engine.train(train_loader)
+  File "/home/soporte/first-julia-nn/src/engine.py", line 24, in train
+    outputs = self.model(inputs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/first-julia-nn/src/model.py", line 51, in forward
+    return self.model(x)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/container.py", line 141, in forward
+    input = module(input)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/linear.py", line 103, in forward
+    return F.linear(input, self.weight, self.bias)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/functional.py", line 1848, in linear
+    return torch._C._nn.linear(input, weight, bias)
+RuntimeError: mat1 and mat2 shapes cannot be multiplied (16x9 and 8x18)
+Error executing job with overrides: ['root=/home/soporte/first-julia-nn', 'action=run_study', 'training.device=cpu', 'hpo.ntrials=200']
+Traceback (most recent call last):
+  File "/home/soporte/first-julia-nn/main.py", line 18, in main
+    run_study(cfg)
+  File "/home/soporte/first-julia-nn/src/train.py", line 72, in run_study
+    study.optimize(partial(objective, cfg=cfg), n_trials=ntrials)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/study.py", line 400, in optimize
+    _optimize(
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 66, in _optimize
+    _optimize_sequential(
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 163, in _optimize_sequential
+    trial = _run_trial(study, func, catch)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 264, in _run_trial
+    raise func_err
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 213, in _run_trial
+    value_or_values = func(trial)
+  File "/home/soporte/first-julia-nn/src/train.py", line 62, in objective
+    _, conf_matrix = run_training(cfg=cfg, fold=fold, params=params, trial=trial)
+  File "/home/soporte/first-julia-nn/src/train.py", line 36, in run_training
+    train_loss = engine.train(train_loader)
+  File "/home/soporte/first-julia-nn/src/engine.py", line 24, in train
+    outputs = self.model(inputs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/first-julia-nn/src/model.py", line 51, in forward
+    return self.model(x)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/container.py", line 141, in forward
+    input = module(input)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/linear.py", line 103, in forward
+    return F.linear(input, self.weight, self.bias)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/functional.py", line 1848, in linear
+    return torch._C._nn.linear(input, weight, bias)
+RuntimeError: mat1 and mat2 shapes cannot be multiplied (16x9 and 8x18)
+
+Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.
+[33m[W 2022-03-03 12:20:05,920][0m Trial 0 failed because of the following error: RuntimeError('mat1 and mat2 shapes cannot be multiplied (16x9 and 8x39)')[0m
+Traceback (most recent call last):
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 213, in _run_trial
+    value_or_values = func(trial)
+  File "/home/soporte/first-julia-nn/src/train.py", line 62, in objective
+    _, conf_matrix = run_training(cfg=cfg, fold=fold, params=params, trial=trial)
+  File "/home/soporte/first-julia-nn/src/train.py", line 36, in run_training
+    train_loss = engine.train(train_loader)
+  File "/home/soporte/first-julia-nn/src/engine.py", line 24, in train
+    outputs = self.model(inputs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/first-julia-nn/src/model.py", line 51, in forward
+    return self.model(x)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/container.py", line 141, in forward
+    input = module(input)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/linear.py", line 103, in forward
+    return F.linear(input, self.weight, self.bias)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/functional.py", line 1848, in linear
+    return torch._C._nn.linear(input, weight, bias)
+RuntimeError: mat1 and mat2 shapes cannot be multiplied (16x9 and 8x39)
+Error executing job with overrides: ['root=/home/soporte/first-julia-nn', 'action=run_study', 'training.device=cpu', 'hpo.ntrials=200']
+Traceback (most recent call last):
+  File "/home/soporte/first-julia-nn/main.py", line 18, in main
+    run_study(cfg)
+  File "/home/soporte/first-julia-nn/src/train.py", line 72, in run_study
+    study.optimize(partial(objective, cfg=cfg), n_trials=ntrials)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/study.py", line 400, in optimize
+    _optimize(
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 66, in _optimize
+    _optimize_sequential(
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 163, in _optimize_sequential
+    trial = _run_trial(study, func, catch)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 264, in _run_trial
+    raise func_err
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 213, in _run_trial
+    value_or_values = func(trial)
+  File "/home/soporte/first-julia-nn/src/train.py", line 62, in objective
+    _, conf_matrix = run_training(cfg=cfg, fold=fold, params=params, trial=trial)
+  File "/home/soporte/first-julia-nn/src/train.py", line 36, in run_training
+    train_loss = engine.train(train_loader)
+  File "/home/soporte/first-julia-nn/src/engine.py", line 24, in train
+    outputs = self.model(inputs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/first-julia-nn/src/model.py", line 51, in forward
+    return self.model(x)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/container.py", line 141, in forward
+    input = module(input)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/linear.py", line 103, in forward
+    return F.linear(input, self.weight, self.bias)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/functional.py", line 1848, in linear
+    return torch._C._nn.linear(input, weight, bias)
+RuntimeError: mat1 and mat2 shapes cannot be multiplied (16x9 and 8x39)
+
+Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.
+[33m[W 2022-03-03 12:20:30,560][0m Trial 1 failed because of the following error: RuntimeError('mat1 and mat2 shapes cannot be multiplied (16x9 and 8x4)')[0m
+Traceback (most recent call last):
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 213, in _run_trial
+    value_or_values = func(trial)
+  File "/home/soporte/first-julia-nn/src/train.py", line 62, in objective
+    _, conf_matrix = run_training(cfg=cfg, fold=fold, params=params, trial=trial)
+  File "/home/soporte/first-julia-nn/src/train.py", line 36, in run_training
+    train_loss = engine.train(train_loader)
+  File "/home/soporte/first-julia-nn/src/engine.py", line 24, in train
+    outputs = self.model(inputs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/first-julia-nn/src/model.py", line 51, in forward
+    return self.model(x)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/container.py", line 141, in forward
+    input = module(input)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/linear.py", line 103, in forward
+    return F.linear(input, self.weight, self.bias)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/functional.py", line 1848, in linear
+    return torch._C._nn.linear(input, weight, bias)
+RuntimeError: mat1 and mat2 shapes cannot be multiplied (16x9 and 8x4)
+Error executing job with overrides: ['root=/home/soporte/first-julia-nn', 'action=run_study', 'training.device=cpu', 'hpo.ntrials=200']
+Traceback (most recent call last):
+  File "/home/soporte/first-julia-nn/main.py", line 18, in main
+    run_study(cfg)
+  File "/home/soporte/first-julia-nn/src/train.py", line 72, in run_study
+    study.optimize(partial(objective, cfg=cfg), n_trials=ntrials)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/study.py", line 400, in optimize
+    _optimize(
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 66, in _optimize
+    _optimize_sequential(
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 163, in _optimize_sequential
+    trial = _run_trial(study, func, catch)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 264, in _run_trial
+    raise func_err
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 213, in _run_trial
+    value_or_values = func(trial)
+  File "/home/soporte/first-julia-nn/src/train.py", line 62, in objective
+    _, conf_matrix = run_training(cfg=cfg, fold=fold, params=params, trial=trial)
+  File "/home/soporte/first-julia-nn/src/train.py", line 36, in run_training
+    train_loss = engine.train(train_loader)
+  File "/home/soporte/first-julia-nn/src/engine.py", line 24, in train
+    outputs = self.model(inputs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/first-julia-nn/src/model.py", line 51, in forward
+    return self.model(x)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/container.py", line 141, in forward
+    input = module(input)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/linear.py", line 103, in forward
+    return F.linear(input, self.weight, self.bias)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/functional.py", line 1848, in linear
+    return torch._C._nn.linear(input, weight, bias)
+RuntimeError: mat1 and mat2 shapes cannot be multiplied (16x9 and 8x4)
+
+Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.
+[33m[W 2022-03-03 12:20:38,275][0m Trial 3 failed because of the following error: RuntimeError('mat1 and mat2 shapes cannot be multiplied (16x9 and 8x48)')[0m
+Traceback (most recent call last):
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 213, in _run_trial
+    value_or_values = func(trial)
+  File "/home/soporte/first-julia-nn/src/train.py", line 62, in objective
+    _, conf_matrix = run_training(cfg=cfg, fold=fold, params=params, trial=trial)
+  File "/home/soporte/first-julia-nn/src/train.py", line 36, in run_training
+    train_loss = engine.train(train_loader)
+  File "/home/soporte/first-julia-nn/src/engine.py", line 24, in train
+    outputs = self.model(inputs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/first-julia-nn/src/model.py", line 51, in forward
+    return self.model(x)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/container.py", line 141, in forward
+    input = module(input)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/linear.py", line 103, in forward
+    return F.linear(input, self.weight, self.bias)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/functional.py", line 1848, in linear
+    return torch._C._nn.linear(input, weight, bias)
+RuntimeError: mat1 and mat2 shapes cannot be multiplied (16x9 and 8x48)
+Error executing job with overrides: ['root=/home/soporte/first-julia-nn', 'action=run_study', 'training.device=cpu', 'hpo.ntrials=200']
+Traceback (most recent call last):
+  File "/home/soporte/first-julia-nn/main.py", line 18, in main
+    run_study(cfg)
+  File "/home/soporte/first-julia-nn/src/train.py", line 72, in run_study
+    study.optimize(partial(objective, cfg=cfg), n_trials=ntrials)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/study.py", line 400, in optimize
+    _optimize(
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 66, in _optimize
+    _optimize_sequential(
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 163, in _optimize_sequential
+    trial = _run_trial(study, func, catch)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 264, in _run_trial
+    raise func_err
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/optuna/study/_optimize.py", line 213, in _run_trial
+    value_or_values = func(trial)
+  File "/home/soporte/first-julia-nn/src/train.py", line 62, in objective
+    _, conf_matrix = run_training(cfg=cfg, fold=fold, params=params, trial=trial)
+  File "/home/soporte/first-julia-nn/src/train.py", line 36, in run_training
+    train_loss = engine.train(train_loader)
+  File "/home/soporte/first-julia-nn/src/engine.py", line 24, in train
+    outputs = self.model(inputs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/first-julia-nn/src/model.py", line 51, in forward
+    return self.model(x)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/container.py", line 141, in forward
+    input = module(input)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/modules/linear.py", line 103, in forward
+    return F.linear(input, self.weight, self.bias)
+  File "/home/soporte/miniconda3/envs/deeplearning/lib/python3.9/site-packages/torch/nn/functional.py", line 1848, in linear
+    return torch._C._nn.linear(input, weight, bias)
+RuntimeError: mat1 and mat2 shapes cannot be multiplied (16x9 and 8x48)
+
+Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.
