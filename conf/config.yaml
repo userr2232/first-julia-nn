@@ -63,6 +63,16 @@ model:
   scaler_checkpoint: scaler.gz
   nfeatures: 8
   ntargets: 1
+  features:
+    - V_hF
+    - V_hF_prev
+    - F10.7
+    - F10.7 (90d)
+    - AP
+    - AP (24h)
+    - DNS
+    - DNC
+
 
 final:
   split:

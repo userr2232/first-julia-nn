@@ -42,8 +42,16 @@ def process_geoparam(cfg: DictConfig, now: datetime.datetime, hF: pd.DataFrame, 
     scaler_path = Path(cfg.model.path) / cfg.model.scaler_checkpoint
     scaler = joblib.load(scaler_path)
 
-    return torch.tensor([current_hF, prev_hF, current_f10_7, f10_7_90d, current_ap, ap_24h, DNS, DNC], 
-                        dtype=torch.float32, requires_grad=True)
+    row = pd.DataFrame({'V_hF': current_hF, 'V_hF_prev': prev_hF, 'F10.7': current_f10_7, 'F10.7 (90d)': f10_7_90d,
+                        'AP': current_ap, 'AP (24h)': ap_24h}, index=[0])
+
+    row = scaler.transform(row)
+    arr = np.append(row, [[DNS, DNC]], axis=-1)
+    
+    t = torch.from_numpy(arr).to(torch.float32).flatten()
+    t.requires_grad = True
+
+    return t
 
 
 def predict(cfg: DictConfig, inputs: torch.Tensor) -> torch.Tensor:

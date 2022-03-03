@@ -1,7 +1,7 @@
 from __future__ import annotations
 from enum import Enum
-from typing import Any, Dict, Optional
-from omegaconf.dictconfig import DictConfig
+from typing import Any, Dict, Optional, List
+from omegaconf import DictConfig
 from operator import itemgetter
 from pathlib import Path
 import optuna

@@ -5,6 +5,7 @@ from typing import Union
 from src.train import run_study, view_study, train_w_best_params, test
 from src.partitions import create_partitions
 from src.inference import daily_prediction, range_prediction
+from src.plots import optimization_history
 import pandas as pd
 
 
