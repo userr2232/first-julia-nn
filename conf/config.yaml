@@ -75,7 +75,6 @@ model:
     - DNS
     - DNC
 
-
 final:
   split:
     train: 70
@@ -87,3 +86,6 @@ action: create_partition
 inference:
   start: ???
   end: ???
+
+explanation:
+  sample_size: 300
