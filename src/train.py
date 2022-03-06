@@ -81,6 +81,7 @@ def run_study(cfg: DictConfig) -> None:
 def view_study(cfg: DictConfig) -> None:
     study = optuna.load_study(study_name=cfg.study_name, storage=cfg.hpo.rdb)
     best_trial = study.best_trial
+    print(best_trial)
 
     fig = optuna.visualization.plot_parallel_coordinate(study, params=["activation", "nlayers", "initial_lr"], target_name="Accuracy")
     fig.write_html(cfg.hpo.plot)
