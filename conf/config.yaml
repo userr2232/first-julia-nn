@@ -1,6 +1,6 @@
 root: ???
 
-study_name: first_julia_nn
+study_name: first_julia_nn_more_patience
 
 datasets:
   data: ${root}/data
@@ -13,6 +13,12 @@ datasets:
   predictions: ${.processed}/nn_predictions.csv
   confusion: ${.processed}/nn_evaluation_confusion.csv
   nn_inputs: ${.processed}/nn_evaluation_inputs.csv
+
+cross_validation:
+  mode: sliding_window
+  training_window_length: 2
+  validation_window_length: 1
+
 
 geomagneticindices:
   UTC_offset: -5
@@ -31,7 +37,6 @@ geomagneticindices:
       2022: mids_2022/${..station}/individual/2022
       2021: mids13/${..station}/individual/2021
       2020: mids12/${..station}/individual/2020
-
 
 training:
   device: cuda

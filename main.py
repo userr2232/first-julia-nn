@@ -5,7 +5,7 @@ from typing import Union
 from src.train import run_study, view_study, train_w_best_params, test
 from src.partitions import create_partitions
 from src.inference import daily_prediction, range_prediction
-from src.plots import optimization_history
+from src.plots import optuna_plots
 from src.explain import explain
 import pandas as pd
 
@@ -29,6 +29,8 @@ def main(cfg: DictConfig) -> None:
         range_prediction(cfg)
     elif action == "explain":
         explain(cfg)
+    elif action == "optuna_plots":
+        optuna_plots(cfg)
     else:
         raise ValueError("Action not implemented.")
 
