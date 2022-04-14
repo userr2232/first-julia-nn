@@ -10,8 +10,9 @@ if [[ "$1" = -drop ]]; then
     mysql -u userr2232 -h 127.0.0.1 < db/drop.sql
 fi
 mysql -u userr2232 -h 127.0.0.1 < db/create.sql
+sleep 30
 for i in {1..4}; do
-    python main.py root=$(pwd) action=run_study training.device=cpu hpo.ntrials=200 &
+    python main.py root=$(pwd) action=run_study training.device=cpu hpo.ntrials=300 &
     if [[ $i = 1 ]]; then
         sleep 10
     fi

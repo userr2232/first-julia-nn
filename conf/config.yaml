@@ -19,7 +19,6 @@ cross_validation:
   training_window_length: 2
   validation_window_length: 1
 
-
 geomagneticindices:
   UTC_offset: -5
   Kp_ap_Ap_SN_F107:
@@ -42,21 +41,21 @@ training:
   device: cuda
   epochs: 40
   logger: trainer
-  patience: 5
+  patience: 10
 
 years:
   start: 2002
-  end: 2021
+  end: 2019
 
 hpo:
   ntrials: 1000
   logger: study
-  min_lr: 1e-6
-  max_lr: 1e-2
+  min_lr: 1e-4
+  max_lr: 1e-3
   min_nlayers: 2
   max_nlayers: 10
   min_nunits: 4
-  max_nunits: 64
+  max_nunits: 128
   min_dropout: 0.05
   max_dropout: 0.5
   rdb: mysql+pymysql://userr2232@127.0.0.1/first_julia_nn
@@ -86,7 +85,7 @@ final:
     valid: 20
   logger: final
 
-action: create_partition
+action: ???
 
 inference:
   start: ???
