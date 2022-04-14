@@ -11,7 +11,7 @@ def load_dataset(cfg: DictConfig) -> ds.Dataset:
     return ds.dataset(source=partitioned_dir, format="ipc", partitioning="hive")
 
 
-def year_loader(cfg: DictConfig) -> Iterator[Tuple, Tuple]:
+def year_loader(cfg: DictConfig) -> Iterator[Tuple[Tuple, Tuple]]:
     START_YEAR, END_YEAR = itemgetter('start', 'end')(cfg.years)
     mode, training_window_length, validation_window_length = itemgetter('mode', 'training_window_length', 'validation_window_length')(cfg.cross_validation)
     

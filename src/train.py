@@ -121,8 +121,7 @@ def test(cfg: DictConfig) -> None:
     model = Model(cfg=cfg, params=best_trial.params)
     engine = Engine(model=model)
     conf_matrix = {'TP': 0, 'FP': 0, 'TN': 0, 'FN': 0}
-    for epoch in range(cfg.training.epochs):
-        engine.evaluate(test_loader, conf_matrix)
+    engine.evaluate(test_loader, conf_matrix)
     TP, TN, FP, FN = itemgetter('TP', 'TN', 'FP', 'FN')(conf_matrix)
     accuracy = (TP + TN) / (TP + FP + TN + FN)
     logger = logging.getLogger(cfg.final.logger)

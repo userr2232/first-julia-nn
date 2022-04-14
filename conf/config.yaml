@@ -1,6 +1,6 @@
 root: ???
 
-study_name: first_julia_nn_more_patience
+study_name: sliding_window
 
 datasets:
   data: ${root}/data
@@ -40,7 +40,7 @@ geomagneticindices:
 
 training:
   device: cuda
-  epochs: 30
+  epochs: 40
   logger: trainer
   patience: 5
 
