@@ -6,6 +6,7 @@ from operator import itemgetter
 from pathlib import Path
 import optuna
 import torch
+from torch.jit import ScriptModule
 import torch.nn as nn
 import re
 
@@ -78,3 +79,8 @@ def save_jit_model(cfg: DictConfig, model: nn.Module) -> None:
     sample_input_cpu = torch.rand(cfg.model.nfeatures)
     traced_cpu = torch.jit.trace(cpu_model, sample_input_cpu)
     torch.jit.save(traced_cpu, Path(cfg.model.path) / cfg.model.nn_checkpoint)
+
+
+def load_jit_model(cfg: DictConfig) -> ScriptModule:
+    path = Path(cfg.model.path)
+    return torch.jit.load(path / cfg.model.nn_checkpoint)

@@ -14,7 +14,7 @@ from functools import partial
 from pathlib import Path
 
 from src.folds import fold_loader, load_everything
-from src.model import Model, save_jit_model
+from src.model import Model, save_jit_model, load_jit_model
 from src.engine import Engine
 from src.dataset import get_dataloaders
 
@@ -107,9 +107,6 @@ def train_w_best_params(cfg: DictConfig) -> None:
 
 
 def test(cfg: DictConfig) -> None:
-    study = optuna.load_study(study_name=cfg.study_name, storage=cfg.hpo.rdb)
-    best_trial = study.best_trial
-
     train_pct, valid_pct = itemgetter('train', 'valid')(cfg.final.split)
     test_pct = 100 - train_pct - valid_pct
     table = load_everything(cfg)
@@ -118,7 +115,7 @@ def test(cfg: DictConfig) -> None:
     test_table = table.slice(test_offset)
     test_loader = get_dataloaders(test_table)
 
-    model = Model(cfg=cfg, params=best_trial.params)
+    model = load_jit_model(cfg)
     engine = Engine(model=model)
     conf_matrix = {'TP': 0, 'FP': 0, 'TN': 0, 'FN': 0}
     engine.evaluate(test_loader, conf_matrix)
