@@ -17,7 +17,6 @@ def days_of_early_ESF(path: Union[str,Path]) -> pd.DataFrame:
             season_df = pd.read_csv(path / filename, parse_dates=['LT'], infer_datetime_format=True)
             if not season_df.empty:
                 season_df = season_df.loc[((season_df.LT.dt.hour > 7)&
-                                            ((season_df.LT.dt.hour < 19)|
-                                                ((season_df.LT.dt.hour == 19) & (season_df.LT.dt.minute <= 30))))].copy()
+                                                ((season_df.LT.dt.hour == 19) & (season_df.LT.dt.minute < 30)))].copy()
                 df = pd.concat([df, season_df], ignore_index=True)
-    return df.loc[(df.ESF > 0)].sort_values('LT').reset_index()
+    return df.loc[(df.ESF > 0)].sort_values('LT').reset_index(drop=True)
