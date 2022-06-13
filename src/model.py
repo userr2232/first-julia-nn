@@ -1,6 +1,6 @@
 from __future__ import annotations
 from enum import Enum
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, Optional, List, Union
 from omegaconf import DictConfig
 from operator import itemgetter
 from pathlib import Path
@@ -9,6 +9,10 @@ import torch
 from torch.jit import ScriptModule
 import torch.nn as nn
 import re
+from sklearn.preprocessing import MinMaxScaler
+import pandas as pd
+import joblib
+
 
 class Activation(Enum):
     ELU = nn.ELU()
@@ -30,7 +34,8 @@ class Activation(Enum):
 class Model(nn.Module):
     def __init__(self, cfg: DictConfig, params: Optional[Dict], trial: Optional[optuna.trial.Trial] = None) -> None:
         super().__init__()
-        nfeatures, ntargets = itemgetter("nfeatures", "ntargets")(cfg.model)
+        features, ntargets = itemgetter("features", "ntargets")(cfg.model)
+        nfeatures = len(features)
         self.trial = trial
         self.params = params
         self.cfg = cfg
@@ -76,7 +81,7 @@ def save_jit_model(cfg: DictConfig, model: nn.Module) -> None:
     path = Path(cfg.model.path)
     path.parent.mkdir(parents=True, exist_ok=True)
     cpu_model = model.cpu()
-    sample_input_cpu = torch.rand(cfg.model.nfeatures)
+    sample_input_cpu = torch.rand(len(cfg.model.features))
     traced_cpu = torch.jit.trace(cpu_model, sample_input_cpu)
     torch.jit.save(traced_cpu, Path(cfg.model.path) / cfg.model.nn_checkpoint)
 
@@ -84,3 +89,13 @@ def save_jit_model(cfg: DictConfig, model: nn.Module) -> None:
 def load_jit_model(cfg: DictConfig) -> ScriptModule:
     path = Path(cfg.model.path)
     return torch.jit.load(path / cfg.model.nn_checkpoint)
+
+
+def Scaler(df: pd.DataFrame, columns: List[str], save: Optional[bool] = False, path: Optional[Union[str,Path]] = None) -> MinMaxScaler:
+    if save:
+        if path is None:
+            raise ValueError("argument path cannot be None if save is True.")
+    scaler = MinMaxScaler((0,1))
+    if save:
+        joblib.dump(scaler, path)
+    return scaler.fit(df.loc[:, columns])

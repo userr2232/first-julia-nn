@@ -1,6 +1,6 @@
 root: ???
 
-study_name: sliding_window
+study_name: hf_ht
 
 datasets:
   data: ${root}/data
@@ -52,12 +52,12 @@ hpo:
   logger: study
   min_lr: 1e-4
   max_lr: 1e-3
-  min_nlayers: 2
+  min_nlayers: 5
   max_nlayers: 10
   min_nunits: 4
   max_nunits: 128
   min_dropout: 0.05
-  max_dropout: 0.5
+  max_dropout: 0.2
   rdb: mysql+pymysql://userr2232@127.0.0.1/first_julia_nn
   plot: HPO.html
 
@@ -65,13 +65,14 @@ model:
   path: ${root}/models
   nn_checkpoint: ${study_name}.pt
   scaler_checkpoint: scaler.gz
-  nfeatures: 8
   ntargets: 1
   kwargs:
     batch_size: 16
   features:
+    - foF2
     - V_hF
     - V_hF_prev
+    - delta_hF_div_delta_time
     - F10.7
     - F10.7 (90d)
     - AP

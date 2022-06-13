@@ -11,24 +11,28 @@ import pyarrow.dataset as ds
 from pyarrow import fs
 from typing import Dict, Union, Optional
 from itertools import product
-from os import chdir
+import os
+import re
 
-from src.utils import date_parser
 
-
-def preprocessing(cfg: DictConfig, save: bool = False, path: Optional[Union[str, Path]] = None) -> None:
+def preprocessing(cfg: DictConfig, save: bool = False, path: Optional[Union[str, Path]] = None) -> pa.Table:
     if save:
         assert(path is not None)
         path = Path(path)
-    fabiano_ESF = pd.DataFrame(columns=['LT', 'ESF'])
-    months = ['03', '06', '09', '12']
-    START_YEAR, END_YEAR = itemgetter('start', 'end')(cfg.years)
-    years = range(START_YEAR, END_YEAR)
+    
     JULIA_PATH = Path(cfg.datasets.julia)
-    for month in months:
-        for year in years:
-            df = pd.read_csv(JULIA_PATH / f"{month}_{year}.csv", parse_dates=['LT'], date_parser=date_parser)
-            fabiano_ESF = pd.concat([fabiano_ESF, df])
+
+    pattern = r"^\d\d_\d\d\d\d.csv$"
+    re_obj = re.compile(pattern)
+    _, _, filenames = next(os.walk(JULIA_PATH), (None, None, []))
+    fabiano_ESF = pd.DataFrame({})
+    for filename in filenames:
+        if re_obj.fullmatch(filename):
+            season_df = pd.read_csv(JULIA_PATH / filename, parse_dates=['LT'], infer_datetime_format=True)
+            if not season_df.empty:
+                fabiano_ESF = pd.concat([fabiano_ESF, season_df], ignore_index=True)
+    fabiano_ESF.LT = pd.to_datetime(fabiano_ESF.LT)
+
     fabiano_ESF.sort_values('LT', inplace=True)
     fabiano_ESF.reset_index(drop=True, inplace=True)
     h5_d = h5py.File(cfg.datasets.sao, 'r')
@@ -46,18 +50,29 @@ def preprocessing(cfg: DictConfig, save: bool = False, path: Optional[Union[str,
     df2.reset_index(drop=True, inplace=True)
     df2['LT'] = df2.datetime - pd.Timedelta('5h')
     df2.drop('datetime', axis=1, inplace=True)
-    df2.drop(['YEAR', 'MONTH', 'DAY', 'HOUR', 'MINUTE', 'SECOND'], axis=1, inplace=True)
+    df2.drop(['YEAR', 'MONTH', 'DAY', 'HOUR', 'MINUTE', 'SECOND', 'foF1',
+    'hmF1','foE','hmE','V_hF2','V_hE','V_hEs','hmF2'], axis=1, inplace=True)
+    df2.dropna(inplace=True)
+    df2.reset_index(drop=True, inplace=True)
+    df.drop(['DST', 'KP'], axis=1, inplace=True)
+    df2.dropna(inplace=True)
+    df.reset_index(drop=True, inplace=True)
     df3 = pd.merge_asof(df2, df, on='LT', tolerance=pd.Timedelta('59m'))
     df3.index = df3.LT
     df3.drop(df3.loc[((df3['F10.7'].isna())|(df3.AP.isna()))].index, inplace=True)
     df3['F10.7 (90d)'] = df3['F10.7'].rolling('90d').mean()
     df3['AP (24h)'] = df3['AP'].rolling('24h').mean()
     df3['V_hF_prev'] = df3['V_hF'].rolling('30min').agg(lambda rows: rows[0])
+    df3['V_hF_prev_time'] = df3['V_hF'].rolling('30min').agg(lambda rows: pd.to_datetime(rows.index[0]).value)
+    df3['V_hF_prev_time'] = pd.to_datetime(df3['V_hF_prev_time'])
     df3.reset_index(drop=True, inplace=True)
-    df3.drop(columns=['foF1','foF2','hmF1','foE','hmE','V_hF2','V_hE','V_hEs','DST'], inplace=True)
+    df3['delta_hF'] = df3['V_hF']-df3['V_hF_prev']
+    df3['delta_time'] = (df3['LT']-df3['V_hF_prev_time']).dt.components.minutes + 1e-9
+    df3['delta_hF_div_delta_time'] = df3['delta_hF'] / df3['delta_time']
+    df3.drop(['delta_hF', 'delta_time', 'V_hF_prev_time'], axis=1, inplace=True)
     fabiano_ESF['LT-1h'] = fabiano_ESF.LT - pd.Timedelta('1h')
     fabiano_ESF.index = fabiano_ESF.LT
-    fabiano_ESF['accum_ESF'] = fabiano_ESF.rolling('1h').sum()
+    fabiano_ESF['accum_ESF'] = fabiano_ESF.ESF.rolling('1h').sum()
     fabiano_ESF.reset_index(drop=True, inplace=True)
     merged = pd.merge_asof(fabiano_ESF, df3, 
                             left_on='LT-1h', right_on='LT', 
@@ -68,11 +83,15 @@ def preprocessing(cfg: DictConfig, save: bool = False, path: Optional[Union[str,
     FIRST2_0 = merged.loc[((merged.LT_y.dt.hour == 19)&(merged.LT_y.dt.minute == 30))].copy()
     FIRST2_0.reset_index(drop=True, inplace=True)
     FIRST2_0['year'] = FIRST2_0.LT_y.dt.year
+    print(FIRST2_0)
     data = pa.Table.from_pandas(FIRST2_0)
     if save:
         partitioning = ds.partitioning(pa.schema([("year", pa.int16())]), flavor="hive")
-        ds.write_dataset(data, str(path / "partitioned"), format="ipc", partitioning=partitioning)
+        ds.write_dataset(data, str(path / "partitioned"), format="ipc", 
+                         partitioning=partitioning, existing_data_behavior="delete_matching")
+    return data
+
 
 def create_partitions(cfg: DictConfig):
     processed_dir = cfg.datasets.processed
-    preprocessing(cfg, save=True, path=Path(processed_dir))
+    return preprocessing(cfg, save=True, path=Path(processed_dir))

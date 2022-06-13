@@ -16,8 +16,9 @@ def F(X, cfg: DictConfig) -> None:
 
 
 def explain(cfg: DictConfig) -> None:
-    df = processing(load_everything(cfg).to_pandas()).loc[:, cfg.model.features].copy()
+    df = processing(columns=cfg.model.features, 
+                        df=load_everything(cfg).to_pandas())[0].loc[:, cfg.model.features].copy()
     X = df.sample(n=cfg.explanation.sample_size, random_state=42)
     explainer = shap.KernelExplainer(partial(F, cfg=cfg), X)
-    shap_values = explainer.shap_values(X, nsamples=500)
+    shap_values = explainer.shap_values(X, nsamples=1000)
     shap.summary_plot(shap_values, X)

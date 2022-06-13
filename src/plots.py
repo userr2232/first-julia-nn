@@ -2,6 +2,7 @@ import optuna
 from omegaconf import DictConfig
 import pandas as pd
 from typing import List
+import matplotlib as mpl
 from matplotlib import pyplot as plt
 import plotly.express as px
 

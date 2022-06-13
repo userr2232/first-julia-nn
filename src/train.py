@@ -29,7 +29,7 @@ def run_training(cfg: DictConfig, fold: Tuple[pa.Table, pa.Table], params: Optio
     early_stopping_iter = cfg.training.patience
     early_stopping_counter = 0
     train_table, valid_table = fold
-    train_loader, valid_loader = get_dataloaders(train_table, valid_table, **cfg.model.kwargs)
+    train_loader, valid_loader = get_dataloaders(cfg.model.features, train_table, valid_table, **cfg.model.kwargs)
     logger = logging.getLogger(logger_name)
     conf_matrix = {'TP': 0, 'FP': 0, 'TN': 0, 'FN': 0}
     for epoch in range(epochs):
@@ -56,7 +56,6 @@ def objective(trial: optuna.trial.Trial, cfg: DictConfig) -> ArrayLike:
     params = {
         "initial_lr": trial.suggest_loguniform("initial_lr", min_lr, max_lr)
     }
-
     accuracies = []
     for fold in fold_loader(cfg=cfg):
         _, conf_matrix = run_training(cfg=cfg, fold=fold, params=params, trial=trial)
@@ -113,7 +112,7 @@ def test(cfg: DictConfig) -> None:
     num_rows = table.num_rows
     test_offset = num_rows * (100 - test_pct) // 100
     test_table = table.slice(test_offset)
-    test_loader = get_dataloaders(test_table)
+    test_loader = get_dataloaders(cfg.model.features, test_table, scaler=Path(cfg.model.path) / cfg.model.scaler_checkpoint)
 
     model = load_jit_model(cfg)
     engine = Engine(model=model)

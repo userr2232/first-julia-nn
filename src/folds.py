@@ -36,5 +36,4 @@ def fold_loader(cfg: DictConfig) -> Iterator[Tuple[pa.Table, pa.Table]]:
 
 
 def load_everything(cfg: DictConfig) -> pa.Table:
-    START_YEAR = itemgetter('start')(cfg.years)
     return load_dataset(cfg).to_table()

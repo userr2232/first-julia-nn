@@ -7,13 +7,14 @@ from src.partitions import create_partitions
 from src.inference import daily_prediction, range_prediction
 from src.plots import optuna_plots
 from src.explain import explain
+from src.partitions import preprocessing
 import pandas as pd
 
 
 @hydra.main(config_path="conf", config_name="config")
 def main(cfg: DictConfig) -> None:
     action = cfg.action
-    if action == "create_partition":
+    if action == "create_partitions":
         create_partitions(cfg)
     elif action == "run_study":
         run_study(cfg)
@@ -31,6 +32,8 @@ def main(cfg: DictConfig) -> None:
         explain(cfg)
     elif action == "optuna_plots":
         optuna_plots(cfg)
+    elif action == "preprocessing":
+        preprocessing(cfg)
     else:
         raise ValueError("Action not implemented.")
 
