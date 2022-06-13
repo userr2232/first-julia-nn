@@ -1,6 +1,6 @@
 root: ???
 
-study_name: hf_ht
+study_name: foF2
 
 datasets:
   data: ${root}/data
