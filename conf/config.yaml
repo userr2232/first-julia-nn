@@ -56,8 +56,8 @@ hpo:
   max_nlayers: 10
   min_nunits: 4
   max_nunits: 128
-  min_dropout: 0.05
-  max_dropout: 0.2
+  min_dropout: 0.01
+  max_dropout: 0.1
   rdb: mysql+pymysql://userr2232@127.0.0.1/first_julia_nn
   plot: HPO.html
 
