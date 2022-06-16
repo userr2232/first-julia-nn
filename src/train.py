@@ -29,7 +29,7 @@ def run_training(cfg: DictConfig, fold: Tuple[pa.Table, pa.Table], params: Optio
     early_stopping_iter = cfg.training.patience
     early_stopping_counter = 0
     train_table, valid_table = fold
-    train_loader, valid_loader = get_dataloaders(cfg.model.features, train_table, valid_table, **cfg.model.kwargs)
+    train_loader, valid_loader = get_dataloaders(cfg.model.features, train_table, valid_table, scaler_checkpoint=Path(cfg.model.path) / cfg.model.scaler_checkpoint, **cfg.model.kwargs)
     logger = logging.getLogger(logger_name)
     conf_matrix = {'TP': 0, 'FP': 0, 'TN': 0, 'FN': 0}
     for epoch in range(epochs):

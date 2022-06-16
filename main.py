@@ -5,7 +5,7 @@ from typing import Union
 from src.train import run_study, view_study, train_w_best_params, test
 from src.partitions import create_partitions
 from src.inference import daily_prediction, range_prediction
-from src.plots import optuna_plots
+from src.plots import optuna_plots, nn_confusion_calendar, first_confusion_calendar, confusion_calendar_patches
 from src.explain import explain
 from src.partitions import preprocessing
 import pandas as pd
@@ -34,6 +34,12 @@ def main(cfg: DictConfig) -> None:
         optuna_plots(cfg)
     elif action == "preprocessing":
         preprocessing(cfg)
+    elif action == "nn_confusion_calendar":
+        nn_confusion_calendar(cfg)
+    elif action == "first_confusion_calendar":
+        first_confusion_calendar(cfg)
+    elif action == "confusion_calendar_patches":
+        confusion_calendar_patches()
     else:
         raise ValueError("Action not implemented.")
 
