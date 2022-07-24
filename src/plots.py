@@ -158,6 +158,10 @@ def nn_confusion_calendar(cfg: DictConfig) -> None:
     engine = Engine(model=model)
     test_df = engine.evaluate_with_LT(test_loader)
     print(test_df)
+    print("TP:", test_df.TP.sum())
+    print("FP:", test_df.FP.sum())
+    print("TN:", test_df.TN.sum())
+    print("FN:", test_df.FN.sum())
     confusion_calendar(test_df)
 
 
@@ -178,6 +182,11 @@ def first_confusion_calendar(cfg: DictConfig) -> None:
     test_df.loc[((test_df.spreadF_prediction.notna())&(test_df.accum_ESF.notna())), 'FP'] = ((test_df.spreadF_prediction == True) & (test_df.accum_ESF == 0))
     test_df.loc[((test_df.spreadF_prediction.notna())&(test_df.accum_ESF.notna())), 'TN'] = ((test_df.spreadF_prediction == False) & (test_df.accum_ESF == 0))
     test_df.loc[((test_df.spreadF_prediction.notna())&(test_df.accum_ESF.notna())), 'FN'] = ((test_df.spreadF_prediction == False) & (test_df.accum_ESF > 0))
+    print(f"could not predict {(test_df.spreadF_prediction.isna()&(test_df.accum_ESF.notna())).sum()} days")
+    print("TP:", test_df.TP.sum())
+    print("FP:", test_df.FP.sum())
+    print("TN:", test_df.TN.sum())
+    print("FN:", test_df.FN.sum())
     test_df.drop(test_df.columns.difference(['LT', 'TP', 'FP', 'TN', 'FN']), axis=1, inplace=True)
     print(test_df)
     confusion_calendar(test_df)
