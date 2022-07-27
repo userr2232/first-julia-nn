@@ -1,6 +1,6 @@
 root: ???
 
-study_name: foF2
+study_name: f10_7_controversy
 
 datasets:
   data: ${root}/data
@@ -74,7 +74,7 @@ model:
     - V_hF_prev
     - delta_hF_div_delta_time
     - F10.7
-    - F10.7 (90d)
+    - F10.7 (90d dev.)
     - AP
     - AP (24h)
     - DNS

@@ -61,6 +61,7 @@ def preprocessing(cfg: DictConfig, save: bool = False, path: Optional[Union[str,
     df3.index = df3.LT
     df3.drop(df3.loc[((df3['F10.7'].isna())|(df3.AP.isna()))].index, inplace=True)
     df3['F10.7 (90d)'] = df3['F10.7'].rolling('90d').mean()
+    df3['F10.7 (90d dev.)'] = df3['F10.7'] - df3['F10.7 (90d)']
     df3['AP (24h)'] = df3['AP'].rolling('24h').mean()
     df3['V_hF_prev'] = df3['V_hF'].rolling('30min').agg(lambda rows: rows[0])
     df3['V_hF_prev_time'] = df3['V_hF'].rolling('30min').agg(lambda rows: pd.to_datetime(rows.index[0]).value)

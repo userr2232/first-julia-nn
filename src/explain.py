@@ -25,5 +25,5 @@ def explain(cfg: DictConfig) -> None:
     plt.subplots_adjust(left=0.2, bottom=0.12, right=0.97, top=0.95, wspace=0.04, hspace=0.1)
     shap.summary_plot(shap_values, X,
                         feature_names=["foF2", "h'F", "prev. h'F", 
-                                        "∆h'F/∆t", "F10.7", "F10.7 (90 d)",
+                                        "∆h'F/∆t", "F10.7", "F10.7 (90d dev.)",
                                         "ap", "ap (24 h)", "DNS", "DNC"])
