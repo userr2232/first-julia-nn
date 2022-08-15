@@ -1,6 +1,6 @@
 root: ???
 
-study_name: foF2
+study_name: 2hour_delay
 
 datasets:
   data: ${root}/data
@@ -13,6 +13,9 @@ datasets:
   predictions: ${.processed}/nn_predictions.csv
   confusion: ${.processed}/nn_evaluation_confusion.csv
   nn_inputs: ${.processed}/nn_evaluation_inputs.csv
+
+preprocessing:
+  delta_hours: 2
 
 cross_validation:
   mode: sliding_window
@@ -74,7 +77,7 @@ model:
     - V_hF_prev
     - delta_hF_div_delta_time
     - F10.7
-    - F10.7 (90d)
+    - F10.7 (90d dev.)
     - AP
     - AP (24h)
     - DNS

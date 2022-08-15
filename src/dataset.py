@@ -14,6 +14,7 @@ def processing(columns: List[str], df: pd.DataFrame, scaler: Optional[Union[MinM
     new_df = df.copy()
 
     columns = pd.Index(columns).intersection(new_df.columns, sort=False).tolist()
+
     if scaler is None:
         scaler = Scaler(df=df, columns=columns)
     else:

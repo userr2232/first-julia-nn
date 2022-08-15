@@ -16,7 +16,7 @@ def main(cfg: DictConfig) -> None:
     action = cfg.action
     if action == "create_partitions":
         create_partitions(cfg)
-    elif action == "run_study":
+    elif action == "run_study": # if modified input features, we need to create partitions again before running this!
         run_study(cfg)
     elif action == "view_study":
         view_study(cfg)
