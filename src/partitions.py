@@ -71,12 +71,13 @@ def preprocessing(cfg: DictConfig, save: bool = False, path: Optional[Union[str,
     df3['delta_time'] = (df3['LT']-df3['V_hF_prev_time']).dt.components.minutes + 1e-9
     df3['delta_hF_div_delta_time'] = df3['delta_hF'] / df3['delta_time']
     df3.drop(['delta_hF', 'delta_time', 'V_hF_prev_time'], axis=1, inplace=True)
-    fabiano_ESF['LT-1h'] = fabiano_ESF.LT - pd.Timedelta('1h')
+    delta_hours = cfg.preprocessing.delta_hours
+    fabiano_ESF[f'LT-{delta_hours}h'] = fabiano_ESF.LT - pd.Timedelta(f'{delta_hours}h')
     fabiano_ESF.index = fabiano_ESF.LT
     fabiano_ESF['accum_ESF'] = fabiano_ESF.ESF.rolling('1h').sum()
     fabiano_ESF.reset_index(drop=True, inplace=True)
     merged = pd.merge_asof(fabiano_ESF, df3, 
-                            left_on='LT-1h', right_on='LT', 
+                            left_on=f'LT-{delta_hours}h', right_on='LT', 
                             tolerance=pd.Timedelta('15m'), 
                             direction='nearest')
     merged.dropna(inplace=True)

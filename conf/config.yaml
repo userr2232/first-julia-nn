@@ -1,6 +1,6 @@
 root: ???
 
-study_name: f10_7_controversy
+study_name: 2hour_delay
 
 datasets:
   data: ${root}/data
@@ -13,6 +13,9 @@ datasets:
   predictions: ${.processed}/nn_predictions.csv
   confusion: ${.processed}/nn_evaluation_confusion.csv
   nn_inputs: ${.processed}/nn_evaluation_inputs.csv
+
+preprocessing:
+  delta_hours: 2
 
 cross_validation:
   mode: sliding_window
