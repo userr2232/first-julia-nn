@@ -151,7 +151,7 @@ def nn_confusion_calendar(cfg: DictConfig) -> None:
     test_offset = num_rows * (100 - test_pct) // 100
     test_table = table.slice(test_offset)
     test_df = test_table.to_pandas()
-    test_df['LT'] = test_df['LT-1h']
+    test_df['LT'] = test_df[f'LT-{cfg.preprocessing.delta_hours}h']
     test_loader = get_test_dataloader(cfg.model.features, test_df, scaler_checkpoint=Path(cfg.model.path) / cfg.model.scaler_checkpoint)
 
     model = load_jit_model(cfg)
