@@ -6,6 +6,12 @@ import re
 import os
 
 
+"""
+    This function returns the days for which ESF occurred before 19:30 LT (Local Time)
+    The csv files have the pattern: MM_yyyy.csv
+    path: path to the folder containing the csv files for each season
+    return: a dataframe with the days for which ESF occurred before 19:30 LT and after 7:00 LT 
+"""
 def days_of_early_ESF(path: Union[str,Path]) -> pd.DataFrame:
     path = Path(path)
     pattern = r"^\d\d_\d\d\d\d.csv$"

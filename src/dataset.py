@@ -10,6 +10,15 @@ from sklearn.preprocessing import MinMaxScaler
 from src.model import Scaler
 
 
+"""
+    Processes the data to be used in the model. It normalizes the data and adds the day of the year as a wave.
+    columns: columns to be normalized
+    df: dataframe to be processed
+    scaler: scaler to be used to normalize the data
+    scaler_checkpoint: path to save the scaler
+    keep_LT: whether to keep the LT column or not
+    return: a tuple with the processed dataframe and the scaler
+"""
 def processing(columns: List[str], df: pd.DataFrame, scaler: Optional[Union[MinMaxScaler,str,Path]] = None, scaler_checkpoint: Optional[Union[Path,str]] = None, keep_LT: bool = False) -> Tuple[pd.DataFrame, MinMaxScaler]:
     new_df = df.copy()
 
