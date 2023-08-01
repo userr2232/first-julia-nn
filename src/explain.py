@@ -14,7 +14,9 @@ def F(X, cfg: DictConfig) -> None:
     X = torch.from_numpy(X).to(torch.float32)
     return predict(cfg, inputs=X).flatten().detach().numpy()
 
-
+"""
+    Plots shap values for the model. 
+"""
 def explain(cfg: DictConfig) -> None:
     df = processing(columns=cfg.model.features, 
                         df=load_everything(cfg).to_pandas())[0].loc[:, cfg.model.features].copy()

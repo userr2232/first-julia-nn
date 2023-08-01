@@ -31,6 +31,7 @@ def processing(columns: List[str], df: pd.DataFrame, scaler: Optional[Union[MinM
             scaler: MinMaxScaler = joblib.load(scaler)
         elif not isinstance(scaler, MinMaxScaler):
             raise ValueError("scaler argument must be of type MinMaxScaler or str or Path")
+    # TODO: Only save if training is being done. And it should go after scaler.transform
     if scaler_checkpoint is not None:
         joblib.dump(scaler, scaler_checkpoint)
     new_df[columns] = scaler.transform(new_df.loc[:, columns])
@@ -45,7 +46,9 @@ def processing(columns: List[str], df: pd.DataFrame, scaler: Optional[Union[MinM
 
     return new_df.loc[:, new_df.columns.intersection(columns)].copy(), scaler
 
-
+"""
+    This class is used to create a dataset for the model.
+"""
 class JuliaDataset(Dataset):
     def __init__(self, columns: List[str], table: pa.Table, scaler: Optional[Union[MinMaxScaler,str,Path]] = None, scaler_checkpoint: Optional[Union[Path,str]] = None):
         self.df, self.scaler = processing(columns=columns, df=table.to_pandas(), scaler=scaler, scaler_checkpoint=scaler_checkpoint)
@@ -59,7 +62,10 @@ class JuliaDataset(Dataset):
         return torch.tensor(row.drop(labels='ESF_binary'), dtype=torch.float32, requires_grad=True), \
                 torch.tensor([row.ESF_binary], dtype=torch.float32, requires_grad=True)
 
-
+"""
+    Returns the dataset with LT as an integer with the number of seconds from Epoch. 
+    It is used when we need to know the date of the prediction.
+"""
 class JuliaDatasetForEvaluation(Dataset):
     def __init__(self, columns: List[str], df: pd.DataFrame, scaler_checkpoint: Union[Path,str]):
         self.df, self.scaler = processing(columns=columns, df=df, scaler=scaler_checkpoint, keep_LT=True)
@@ -73,7 +79,9 @@ class JuliaDatasetForEvaluation(Dataset):
                 torch.tensor(row.drop(['ESF_binary', 'LT']), dtype=torch.float32, requires_grad=True), \
                 torch.tensor([row.ESF_binary], dtype=torch.float32, requires_grad=True)
 
-
+"""
+    Returns the dataloader for the model using the JuliaDatasetForEvaluation class.
+"""
 def get_test_dataloader(columns: List[str], df: pd.DataFrame, scaler_checkpoint: Union[Path,str], **kwargs) -> DataLoader:
     return DataLoader(dataset=JuliaDatasetForEvaluation(columns=columns, df=df, scaler_checkpoint=scaler_checkpoint), **kwargs)
 

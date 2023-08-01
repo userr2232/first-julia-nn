@@ -8,6 +8,7 @@ from src.model import Model
 
 
 class Engine:
+    # TODO: Investigate the different loss functions and what this loss function does and when it should be used
     criterion = nn.BCEWithLogitsLoss()
 
     def __init__(self, model: Model, device: Optional[str]="cpu", optimizer: Optional[Optimizer] = None):
@@ -27,9 +28,11 @@ class Engine:
             loss.backward()
             self.optimizer.step()
             final_loss += loss.item()
-        return final_loss / len(dataloader)
+        return final_loss / len(dataloader) # len(dataloader) is the number of batches
 
-
+    """
+        This function evaluates the model using the dataloader and the confusion matrix along with the dates.
+    """
     def evaluate(self, dataloader: DataLoader, conf_matrix: dict) -> float:
         self.model.eval()
         final_loss = 0
@@ -40,7 +43,7 @@ class Engine:
             final_loss += loss.item()
             outputs_sigmoid = torch.sigmoid(outputs)
             outputs_binary = (outputs_sigmoid >= 0.5)
-            conf_matrix['TP'] += ((targets == 1) & (outputs_binary == 1)).sum().item()
+            conf_matrix['TP'] += ((targets == 1) & (outputs_binary == 1)).sum().item() # target o ground truth
             conf_matrix['FP'] += ((targets == 0) & (outputs_binary == 1)).sum().item()
             conf_matrix['TN'] += ((targets == 0) & (outputs_binary == 0)).sum().item()
             conf_matrix['FN'] += ((targets == 1) & (outputs_binary == 0)).sum().item()
