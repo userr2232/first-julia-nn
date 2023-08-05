@@ -6,7 +6,7 @@ datasets:
   data: ${root}/data
   processed: ${root}/processed_data
   selected: ${.data}
-  partitioned: ${.processed}/partitioned
+  partitioned: ${.processed}/partitioned # /Users/userr2232/Documents/misc/first-julia-nn/processed_data/partitioned
   test: ${.selected}/test
   julia: ${.selected}/Data_Julia
   sao: ${.selected}/Completed_SAO_V3.hdf5

@@ -83,6 +83,7 @@ class JuliaDatasetForEvaluation(Dataset):
     Returns the dataloader for the model using the JuliaDatasetForEvaluation class.
 """
 def get_test_dataloader(columns: List[str], df: pd.DataFrame, scaler_checkpoint: Union[Path,str], **kwargs) -> DataLoader:
+    # FIXME: This is not working properly because the dataloader is not shuffling the data (TBD)
     return DataLoader(dataset=JuliaDatasetForEvaluation(columns=columns, df=df, scaler_checkpoint=scaler_checkpoint), **kwargs)
 
 
