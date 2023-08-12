@@ -15,20 +15,24 @@ def download_hF(cfg: DictConfig, datetimes: pd.DatetimeIndex) -> pd.DataFrame:
     cfg -- extra parameters specified in some .yaml file
     datetimes -- date range (freq=1D). It should not have obs times since these come from the cfg arg.
     """
+    # gets all dates in the date range
     _datetimes = pd.date_range(datetimes[0].date(), datetimes[-1].date(), freq='1D')
     if _datetimes[0].year < 2020:
         raise NotImplementedError("This program supports fetching h'F from 2020 onward.")
+    
     ftp_host, ftp_path = itemgetter('host', 'path')(cfg.geomagneticindices.hF)
-    ftp_path = Path(ftp_path)
+    ftp_path = Path(ftp_path) 
     ftp = FTP(ftp_host)
-    ftp.login()
+    ftp.login() # anonymous login
     station, obs_times = itemgetter('station', 'obs_times')(cfg.geomagneticindices.hF)
+    # Creates empty dataframe with the specified schema (date, hF)
     schema = [('date', 'datetime64[ns]'), ('hF', 'float')]
     df = pd.DataFrame(np.empty(0, dtype=schema))
     rows = []
+    # iterates every day in the date range
     for date in _datetimes:
         year, dayofyear = date.year, date.dayofyear
-        dayofyear = str(dayofyear).zfill(3)
+        dayofyear = str(dayofyear).zfill(3) # pad with zeros
         extra_path = Path(itemgetter(year)(cfg.geomagneticindices.hF.year_mapping)) / dayofyear / "scaled"
         try:
             ftp.cwd(str(ftp_path / extra_path))
@@ -38,6 +42,8 @@ def download_hF(cfg: DictConfig, datetimes: pd.DatetimeIndex) -> pd.DataFrame:
             _date = date + pd.Timedelta(obs_time[:2]+'hours') + pd.Timedelta(obs_time[-2:]+'min')
             download_file = io.BytesIO()
             filename = f"{station}_{year}{dayofyear}{obs_time}00.SAO"
+            # TODO: check what SAO version is in the server
+            # TODO: document the following code
             try:
                 ftp.retrbinary(f"RETR {filename}", download_file.write)
             except:
@@ -80,10 +86,12 @@ def download_ap_f10_7(cfg: DictConfig, datetimes: pd.DatetimeIndex) -> pd.DataFr
     download_file = io.BytesIO()
     ftp.retrbinary("RETR {}".format(filename), download_file.write)
     download_file.seek(0)
+    # combine yearly data with more recent data
     df = pd.concat([df, pd.read_table(download_file, comment='#', delim_whitespace=True, header=None, names=colnames)], ignore_index=True)
 
     df.rename(columns={'YYYY': 'YEAR', 'MM': 'MONTH', 'DD': 'DAY', 'F10.7obs': 'f10_7'}, inplace=True)
     df['date'] = pd.to_datetime(df.loc[:, ('YEAR', 'MONTH', 'DAY')])
+    # sort by date and drop repeated rows
     df = df.sort_values('date').drop_duplicates('date',keep='last')
 
     df.drop(['YEAR', 'MONTH', 'DAY'], axis=1, inplace=True)
@@ -102,6 +110,10 @@ def download_ap_f10_7(cfg: DictConfig, datetimes: pd.DatetimeIndex) -> pd.DataFr
     return ap_df, f10_7_df
 
 
+"""
+    Gets the data from the two FTP servers and returns it as dataframes.
+    The geomagnetic indices are returned in the following order: hF, ap, f10_7. These are h'F, ap and F10.7 respectively.
+"""
 def get_indices(cfg: DictConfig, date_range: pd.DatetimeIndex) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     ap, f10_7 = download_ap_f10_7(cfg, date_range)
     ap.replace(-1, np.nan, inplace=True)

@@ -28,17 +28,17 @@ geomagneticindices:
     host: ftp.gfz-potsdam.de
     path: /pub/home/obs/Kp_ap_Ap_SN_F107
   hF:
-    host: ftp.ngdc.noaa.gov
+    host: ftp.ngdc.noaa.gov # NOAA server
     path: /ionosonde
-    station: JI91J
+    station: JI91J # Jicamarca station
     obs_times: # UTC
-      - "0000"
-      - "0015"
-      - "0030"
+      - "0000" # 1900 LT
+      - "0015" # 1915 LT
+      - "0030" # 1930 LT
     year_mapping:
       2022: mids_2022/${..station}/individual/2022
       2021: mids13/${..station}/individual/2021
-      2020: mids12/${..station}/individual/2020
+      2020: mids12/${..station}/individual/2020 # TODO: create year mapping for 2023
 
 training:
   device: cuda
